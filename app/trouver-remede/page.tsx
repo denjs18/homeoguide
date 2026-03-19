@@ -20,7 +20,8 @@ interface RemedyResult {
   id: string;
   nom: string;
   nom_complet: string;
-  matchedSymptoms: string[];
+  matchedKeywords: string[]; // Les mots-clés qui ont matché
+  matchedUserSymptoms: string[]; // Les symptômes utilisateur correspondants
   totalScore: number;
 }
 
@@ -119,49 +120,74 @@ export default function TrouverRemedePage() {
     try {
       const supabase = createClient()
 
-      // Collecter tous les mots-clés
-      const allKeywords: string[] = []
+      // Construire une map des mots-clés vers les symptômes utilisateur
+      const keywordToUserSymptom = new Map<string, string[]>()
+
       selectedSymptoms.forEach(ss => {
-        allKeywords.push(...ss.symptom.keywords)
-        ss.modalites.forEach(m => allKeywords.push(...m.keywords))
+        const userSymptomDesc = ss.symptom.nom +
+          (ss.modalites.length > 0 ? ' (' + ss.modalites.map(m => m.nom).join(', ') + ')' : '')
+
+        ss.symptom.keywords.forEach(k => {
+          const existing = keywordToUserSymptom.get(k.toLowerCase()) || []
+          if (!existing.includes(userSymptomDesc)) {
+            existing.push(userSymptomDesc)
+          }
+          keywordToUserSymptom.set(k.toLowerCase(), existing)
+        })
+
+        ss.modalites.forEach(m => {
+          m.keywords.forEach(k => {
+            const existing = keywordToUserSymptom.get(k.toLowerCase()) || []
+            if (!existing.includes(userSymptomDesc)) {
+              existing.push(userSymptomDesc)
+            }
+            keywordToUserSymptom.set(k.toLowerCase(), existing)
+          })
+        })
       })
 
-      // Rechercher les symptômes OOREP correspondants
-      const searchTerms = allKeywords.slice(0, 10) // Limiter pour performance
-      let symptomeIds: string[] = []
+      // Collecter tous les mots-clés
+      const allKeywords = Array.from(keywordToUserSymptom.keys())
+
+      // Rechercher les symptômes OOREP correspondants avec leurs noms
+      const searchTerms = allKeywords.slice(0, 15)
+      const symptomeData: { id: string; nom: string; matchedKeyword: string }[] = []
 
       for (const term of searchTerms) {
         const { data } = await supabase
           .from('symptomes')
-          .select('id')
+          .select('id, nom')
           .ilike('nom', `%${term}%`)
-          .limit(20)
+          .limit(10)
 
         if (data) {
-          symptomeIds.push(...(data as { id: string }[]).map(d => d.id))
+          (data as { id: string; nom: string }[]).forEach(d => {
+            symptomeData.push({ ...d, matchedKeyword: term })
+          })
         }
       }
 
-      // Dédupliquer
-      symptomeIds = Array.from(new Set(symptomeIds))
-
-      if (symptomeIds.length === 0) {
+      if (symptomeData.length === 0) {
         setRemedyResults([])
         setLoading(false)
         return
       }
+
+      // Dédupliquer par ID
+      const uniqueSymptomeIds = Array.from(new Set(symptomeData.map(s => s.id)))
 
       // Trouver les remèdes associés
       const { data: associations } = await supabase
         .from('symptomes_remedes')
         .select(`
           remede_id,
+          symptome_id,
           grade,
           remedes (id, nom, nom_complet)
         `)
-        .in('symptome_id', symptomeIds.slice(0, 50))
+        .in('symptome_id', uniqueSymptomeIds.slice(0, 50))
         .order('grade', { ascending: false })
-        .limit(200)
+        .limit(300)
 
       if (!associations) {
         setRemedyResults([])
@@ -169,30 +195,75 @@ export default function TrouverRemedePage() {
         return
       }
 
-      // Agréger par remède
+      // Créer une map symptome_id -> infos
+      const symptomeInfoMap = new Map<string, { nom: string; keywords: string[] }>()
+      symptomeData.forEach(s => {
+        const existing = symptomeInfoMap.get(s.id)
+        if (existing) {
+          if (!existing.keywords.includes(s.matchedKeyword)) {
+            existing.keywords.push(s.matchedKeyword)
+          }
+        } else {
+          symptomeInfoMap.set(s.id, { nom: s.nom, keywords: [s.matchedKeyword] })
+        }
+      })
+
+      // Agréger par remède avec les détails
       const remedyMap = new Map<string, RemedyResult>()
 
       for (const assoc of associations as any[]) {
         if (!assoc.remedes) continue
 
+        const symptomeInfo = symptomeInfoMap.get(assoc.symptome_id)
+        const matchedKeywords = symptomeInfo?.keywords || []
+
+        // Trouver les symptômes utilisateur correspondants
+        const userSymptoms: string[] = []
+        matchedKeywords.forEach(k => {
+          const userSyms = keywordToUserSymptom.get(k)
+          if (userSyms) {
+            userSyms.forEach(us => {
+              if (!userSymptoms.includes(us)) {
+                userSymptoms.push(us)
+              }
+            })
+          }
+        })
+
         const existing = remedyMap.get(assoc.remede_id)
         if (existing) {
           existing.totalScore += assoc.grade || 1
-          existing.matchedSymptoms.push(assoc.remede_id)
+          matchedKeywords.forEach(k => {
+            if (!existing.matchedKeywords.includes(k)) {
+              existing.matchedKeywords.push(k)
+            }
+          })
+          userSymptoms.forEach(us => {
+            if (!existing.matchedUserSymptoms.includes(us)) {
+              existing.matchedUserSymptoms.push(us)
+            }
+          })
         } else {
           remedyMap.set(assoc.remede_id, {
             id: assoc.remedes.id,
             nom: assoc.remedes.nom,
             nom_complet: assoc.remedes.nom_complet,
-            matchedSymptoms: [assoc.remede_id],
+            matchedKeywords: matchedKeywords,
+            matchedUserSymptoms: userSymptoms,
             totalScore: assoc.grade || 1
           })
         }
       }
 
-      // Trier par score
+      // Trier par score et nombre de symptômes matchés
       const sortedResults = Array.from(remedyMap.values())
-        .sort((a, b) => b.totalScore - a.totalScore)
+        .sort((a, b) => {
+          // D'abord par nombre de symptômes utilisateur matchés
+          const symDiff = b.matchedUserSymptoms.length - a.matchedUserSymptoms.length
+          if (symDiff !== 0) return symDiff
+          // Puis par score
+          return b.totalScore - a.totalScore
+        })
         .slice(0, 20)
 
       setRemedyResults(sortedResults)
@@ -559,33 +630,63 @@ export default function TrouverRemedePage() {
           ) : (
             <div className="space-y-4">
               {remedyResults.map((remedy, index) => (
-                <Card key={remedy.id} className={index === 0 ? 'border-primary' : ''}>
+                <Card key={remedy.id} className={cn(
+                  index === 0 && 'border-primary border-2',
+                  index === 0 && 'bg-primary/5'
+                )}>
                   <CardContent className="pt-6">
-                    <div className="flex items-start justify-between">
+                    <div className="flex items-start justify-between mb-3">
                       <div>
-                        <Link
-                          href={`/remedes/${remedy.id}`}
-                          className="text-xl font-semibold hover:text-primary"
-                        >
-                          {remedy.nom}
-                        </Link>
+                        <div className="flex items-center gap-2">
+                          {index === 0 && (
+                            <Badge className="bg-primary">Meilleur choix</Badge>
+                          )}
+                          <Link
+                            href={`/remedes/${remedy.id}`}
+                            className="text-xl font-semibold hover:text-primary"
+                          >
+                            {remedy.nom}
+                          </Link>
+                        </div>
                         {remedy.nom_complet && remedy.nom_complet !== remedy.nom && (
                           <p className="text-sm text-muted-foreground italic">
                             {remedy.nom_complet}
                           </p>
                         )}
                       </div>
-                      <Badge variant={index === 0 ? 'default' : 'secondary'}>
-                        Score: {remedy.totalScore}
+                      <Badge variant="outline" className="shrink-0">
+                        {remedy.matchedUserSymptoms.length} symptôme{remedy.matchedUserSymptoms.length > 1 ? 's' : ''}
                       </Badge>
                     </div>
-                    <div className="mt-4">
-                      <Link href={`/remedes/${remedy.id}`}>
-                        <Button variant="outline" size="sm">
-                          Voir la fiche complète
-                        </Button>
-                      </Link>
+
+                    {/* Symptômes correspondants */}
+                    <div className="bg-muted/50 rounded-lg p-3 mb-4">
+                      <div className="text-sm font-medium mb-2 text-muted-foreground">
+                        Correspond à vos symptômes :
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {remedy.matchedUserSymptoms.map((symptom, i) => (
+                          <span
+                            key={i}
+                            className="inline-flex items-center px-2.5 py-1 rounded-md bg-background border text-sm"
+                          >
+                            <span className="text-green-600 mr-1.5">✓</span>
+                            {symptom}
+                          </span>
+                        ))}
+                        {remedy.matchedUserSymptoms.length === 0 && (
+                          <span className="text-sm text-muted-foreground">
+                            Correspondance générale basée sur vos recherches
+                          </span>
+                        )}
+                      </div>
                     </div>
+
+                    <Link href={`/remedes/${remedy.id}`}>
+                      <Button variant="outline" size="sm">
+                        Voir la fiche complète
+                      </Button>
+                    </Link>
                   </CardContent>
                 </Card>
               ))}
