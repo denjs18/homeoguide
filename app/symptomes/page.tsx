@@ -1,122 +1,57 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { SymptomeCard } from "@/components/SymptomeCard"
 import { Input } from "@/components/ui/input"
 import { CATEGORIES } from "@/lib/utils"
 import { cn } from "@/lib/utils"
+import { createClient } from "@/lib/supabase/client"
 import type { Symptome } from "@/lib/supabase/types"
 
-// Mock data
-const mockSymptomes: (Symptome & { remedesCount: number })[] = [
-  {
-    id: "fievre",
-    nom: "Fièvre",
-    categorie: "Général",
-    description: "Élévation anormale de la température corporelle, souvent accompagnée de frissons",
-    mots_cles: ["température", "chaud", "frissons", "hyperthermie"],
-    created_at: new Date().toISOString(),
-    remedesCount: 12
-  },
-  {
-    id: "toux",
-    nom: "Toux",
-    categorie: "Respiratoire",
-    description: "Réflexe d'expulsion d'air, sèche ou grasse, aiguë ou chronique",
-    mots_cles: ["tousser", "expectorations", "bronches", "gorge"],
-    created_at: new Date().toISOString(),
-    remedesCount: 18
-  },
-  {
-    id: "rhume",
-    nom: "Rhume",
-    categorie: "ORL",
-    description: "Infection virale des voies respiratoires supérieures avec écoulement nasal",
-    mots_cles: ["nez", "écoulement", "congestion", "éternuement"],
-    created_at: new Date().toISOString(),
-    remedesCount: 15
-  },
-  {
-    id: "mal-de-tete",
-    nom: "Mal de tête",
-    categorie: "Nerveux",
-    description: "Douleurs localisées au niveau du crâne, de différentes intensités et origines",
-    mots_cles: ["céphalée", "migraine", "douleur", "crâne"],
-    created_at: new Date().toISOString(),
-    remedesCount: 22
-  },
-  {
-    id: "nausees",
-    nom: "Nausées et vomissements",
-    categorie: "Digestif",
-    description: "Sensation de malaise avec envie de vomir, d'origines diverses",
-    mots_cles: ["vomissement", "dégoût", "estomac", "mal de transport"],
-    created_at: new Date().toISOString(),
-    remedesCount: 14
-  },
-  {
-    id: "insomnie",
-    nom: "Insomnie",
-    categorie: "Psychique",
-    description: "Difficultés d'endormissement ou réveils nocturnes fréquents",
-    mots_cles: ["sommeil", "réveil", "dormir", "fatigue"],
-    created_at: new Date().toISOString(),
-    remedesCount: 10
-  },
-  {
-    id: "stress",
-    nom: "Stress et anxiété",
-    categorie: "Psychique",
-    description: "État de tension nerveuse, inquiétude, nervosité",
-    mots_cles: ["angoisse", "nerveux", "tension", "peur"],
-    created_at: new Date().toISOString(),
-    remedesCount: 16
-  },
-  {
-    id: "coliques",
-    nom: "Coliques du nourrisson",
-    categorie: "Digestif",
-    description: "Pleurs intenses et prolongés du nourrisson liés à des douleurs abdominales",
-    mots_cles: ["bébé", "pleurs", "ventre", "gaz"],
-    created_at: new Date().toISOString(),
-    remedesCount: 8
-  },
-  {
-    id: "dentition",
-    nom: "Poussées dentaires",
-    categorie: "ORL",
-    description: "Douleurs et symptômes accompagnant l'apparition des dents chez le nourrisson",
-    mots_cles: ["dents", "bébé", "gencives", "salive"],
-    created_at: new Date().toISOString(),
-    remedesCount: 6
-  },
-  {
-    id: "eczema",
-    nom: "Eczéma",
-    categorie: "Cutané",
-    description: "Inflammation de la peau avec rougeurs, démangeaisons et vésicules",
-    mots_cles: ["peau", "démangeaisons", "rougeur", "allergie"],
-    created_at: new Date().toISOString(),
-    remedesCount: 11
-  },
-  {
-    id: "mammite",
-    nom: "Mammite bovine",
-    categorie: "Général",
-    description: "Inflammation de la mamelle chez les bovins laitiers",
-    mots_cles: ["vache", "lait", "mamelle", "infection"],
-    created_at: new Date().toISOString(),
-    remedesCount: 7
-  }
-]
-
 export default function SymptomesPage() {
+  const [symptomes, setSymptomes] = useState<(Symptome & { remedesCount: number })[]>([])
+  const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState("")
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
 
-  const filteredSymptomes = mockSymptomes.filter(s => {
-    const matchesFilter = s.nom.toLowerCase().includes(filter.toLowerCase()) ||
-      s.description?.toLowerCase().includes(filter.toLowerCase()) ||
+  // Fetch symptoms from Supabase
+  useEffect(() => {
+    async function fetchSymptomes() {
+      const supabase = createClient()
+
+      // Get symptoms with count of associated remedies
+      const { data, error } = await supabase
+        .from('symptomes')
+        .select(`
+          *,
+          symptomes_remedes(count)
+        `)
+        .order('nom')
+        .limit(500) // Limit for performance
+
+      if (error) {
+        console.error('Error fetching symptomes:', error)
+      } else if (data) {
+        const symptomesWithCount = (data as any[]).map(s => ({
+          ...s,
+          remedesCount: s.symptomes_remedes?.[0]?.count || 0
+        }))
+        setSymptomes(symptomesWithCount)
+      }
+      setLoading(false)
+    }
+
+    fetchSymptomes()
+  }, [])
+
+  // Get unique categories from data
+  const uniqueCategories = Array.from(new Set(symptomes.map(s => s.categorie).filter(Boolean))) as string[]
+  const availableCategories = CATEGORIES.filter(c => uniqueCategories.includes(c.nom))
+
+  const filteredSymptomes = symptomes.filter(s => {
+    const matchesFilter = !filter ||
+      s.nom.toLowerCase().includes(filter.toLowerCase()) ||
+      s.categorie?.toLowerCase().includes(filter.toLowerCase()) ||
       s.mots_cles?.some(m => m.toLowerCase().includes(filter.toLowerCase()))
 
     const matchesCategory = !selectedCategory || s.categorie === selectedCategory
@@ -131,16 +66,30 @@ export default function SymptomesPage() {
     return acc
   }, {} as Record<string, typeof filteredSymptomes>)
 
-  const sortedCategories = CATEGORIES
+  const sortedCategories: { nom: string; icone: string; ordre: number }[] = availableCategories
     .filter(c => symptomesByCategory[c.nom])
     .sort((a, b) => a.ordre - b.ordre)
+    .map(c => ({ nom: c.nom, icone: c.icone, ordre: c.ordre }))
+
+  // Add "Autre" category if needed
+  if (symptomesByCategory["Autre"]) {
+    sortedCategories.push({ nom: "Autre", icone: "📋", ordre: 99 })
+  }
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center py-12">
+        <div className="text-muted-foreground">Chargement des symptômes...</div>
+      </div>
+    )
+  }
 
   return (
     <div>
       <div className="mb-6">
         <h1 className="text-3xl font-bold mb-2">Symptômes</h1>
         <p className="text-muted-foreground">
-          Trouvez les remèdes adaptés à vos symptômes
+          {symptomes.length} symptômes disponibles - Trouvez les remèdes adaptés
         </p>
       </div>
 
@@ -167,7 +116,7 @@ export default function SymptomesPage() {
           >
             Tous
           </button>
-          {CATEGORIES.map((cat) => (
+          {availableCategories.slice(0, 15).map((cat) => (
             <button
               key={cat.nom}
               onClick={() => setSelectedCategory(cat.nom)}
@@ -192,9 +141,12 @@ export default function SymptomesPage() {
             <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
               <span>{category.icone}</span>
               {category.nom}
+              <span className="text-sm font-normal text-muted-foreground">
+                ({symptomesByCategory[category.nom]?.length || 0})
+              </span>
             </h2>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {symptomesByCategory[category.nom].map((symptome) => (
+              {symptomesByCategory[category.nom]?.slice(0, 12).map((symptome) => (
                 <SymptomeCard
                   key={symptome.id}
                   symptome={symptome}
@@ -202,13 +154,18 @@ export default function SymptomesPage() {
                 />
               ))}
             </div>
+            {(symptomesByCategory[category.nom]?.length || 0) > 12 && (
+              <p className="text-sm text-muted-foreground mt-2">
+                ... et {symptomesByCategory[category.nom].length - 12} autres symptômes dans cette catégorie
+              </p>
+            )}
           </section>
         ))}
       </div>
 
-      {filteredSymptomes.length === 0 && (
+      {filteredSymptomes.length === 0 && !loading && (
         <div className="text-center py-12 text-muted-foreground">
-          Aucun symptôme trouvé pour &quot;{filter}&quot;
+          {filter ? `Aucun symptôme trouvé pour "${filter}"` : "Aucun symptôme disponible"}
         </div>
       )}
     </div>

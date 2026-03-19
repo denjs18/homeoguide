@@ -5,76 +5,39 @@ import { RemedeCard } from "@/components/RemedeCard"
 import { AlphabetNav } from "@/components/AlphabetNav"
 import { Input } from "@/components/ui/input"
 import { groupByFirstLetter } from "@/lib/utils"
+import { createClient } from "@/lib/supabase/client"
 import type { Remede } from "@/lib/supabase/types"
 
-// Données temporaires pour le développement
-const mockRemedes: Remede[] = [
-  {
-    id: "arnica-montana",
-    nom: "Arnica Montana",
-    nom_complet: "Arnica Montana",
-    description: "L'Arnica montana est le remède homéopathique le plus utilisé. Il est particulièrement indiqué pour les traumatismes, les chocs, les courbatures et les ecchymoses.",
-    origine: "Plante vivace des montagnes européennes",
-    action_principale: "Traumatismes, contusions, courbatures, chocs émotionnels",
-    dilutions: ["5CH", "7CH", "9CH", "15CH", "30CH"],
-    forme_galenique: ["granules", "doses"],
-    created_at: new Date().toISOString()
-  },
-  {
-    id: "belladonna",
-    nom: "Belladonna",
-    nom_complet: "Atropa Belladonna",
-    description: "Remède des inflammations aiguës avec rougeur, chaleur et douleur. Utile pour les fièvres soudaines et les maux de tête congestifs.",
-    origine: "Plante herbacée de la famille des Solanacées",
-    action_principale: "Fièvre brutale, inflammations aiguës, maux de tête pulsatifs",
-    dilutions: ["5CH", "7CH", "9CH", "15CH"],
-    forme_galenique: ["granules", "doses"],
-    created_at: new Date().toISOString()
-  },
-  {
-    id: "chamomilla",
-    nom: "Chamomilla",
-    nom_complet: "Matricaria Chamomilla",
-    description: "Remède de l'hypersensibilité à la douleur, particulièrement pour les poussées dentaires des nourrissons et les coliques.",
-    origine: "Camomille allemande",
-    action_principale: "Douleurs dentaires, coliques du nourrisson, irritabilité",
-    dilutions: ["7CH", "9CH", "15CH"],
-    forme_galenique: ["granules"],
-    created_at: new Date().toISOString()
-  },
-  {
-    id: "nux-vomica",
-    nom: "Nux Vomica",
-    nom_complet: "Strychnos Nux Vomica",
-    description: "Le remède des excès en tous genres : alimentaires, médicamenteux, stress professionnel. Indiqué pour les troubles digestifs et le surmenage.",
-    origine: "Graine du vomiquier, arbre d'Asie",
-    action_principale: "Troubles digestifs, surmenage, excès alimentaires, gueule de bois",
-    dilutions: ["5CH", "7CH", "9CH", "15CH", "30CH"],
-    forme_galenique: ["granules", "doses"],
-    created_at: new Date().toISOString()
-  },
-  {
-    id: "pulsatilla",
-    nom: "Pulsatilla",
-    nom_complet: "Pulsatilla Nigricans",
-    description: "Remède des personnes douces et émotives, des rhinites et otites à écoulement jaune-vert, des troubles hormonaux féminins.",
-    origine: "Anémone pulsatille",
-    action_principale: "Rhinites, otites, troubles menstruels, émotivité",
-    dilutions: ["5CH", "7CH", "9CH", "15CH", "30CH"],
-    forme_galenique: ["granules", "doses"],
-    created_at: new Date().toISOString()
-  },
-]
-
 export default function RemediesPage() {
-  const [remedes, setRemedes] = useState<Remede[]>(mockRemedes)
+  const [remedes, setRemedes] = useState<Remede[]>([])
+  const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState("")
   const [activeLetter, setActiveLetter] = useState<string | undefined>()
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({})
 
+  // Fetch remedies from Supabase
+  useEffect(() => {
+    async function fetchRemedes() {
+      const supabase = createClient()
+      const { data, error } = await supabase
+        .from('remedes')
+        .select('*')
+        .order('nom')
+
+      if (error) {
+        console.error('Error fetching remedes:', error)
+      } else if (data) {
+        setRemedes(data)
+      }
+      setLoading(false)
+    }
+
+    fetchRemedes()
+  }, [])
+
   const filteredRemedes = remedes.filter(r =>
     r.nom.toLowerCase().includes(filter.toLowerCase()) ||
-    r.description?.toLowerCase().includes(filter.toLowerCase())
+    r.nom_complet?.toLowerCase().includes(filter.toLowerCase())
   )
 
   const groupedRemedes = groupByFirstLetter(filteredRemedes)
@@ -107,6 +70,14 @@ export default function RemediesPage() {
 
     return () => observer.disconnect()
   }, [groupedRemedes])
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center py-12">
+        <div className="text-muted-foreground">Chargement des remèdes...</div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex gap-6">
@@ -169,9 +140,9 @@ export default function RemediesPage() {
           ))}
         </div>
 
-        {filteredRemedes.length === 0 && (
+        {filteredRemedes.length === 0 && !loading && (
           <div className="text-center py-12 text-muted-foreground">
-            Aucun remède trouvé pour &quot;{filter}&quot;
+            {filter ? `Aucun remède trouvé pour "${filter}"` : "Aucun remède disponible"}
           </div>
         )}
       </div>
