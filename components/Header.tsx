@@ -10,6 +10,7 @@ export function Header() {
 
   const navLinks = [
     { href: "/", label: "Accueil" },
+    { href: "/trouver-remede", label: "Trouver un remède", highlight: true },
     { href: "/remedes", label: "Remèdes" },
     { href: "/symptomes", label: "Symptômes" },
   ]
@@ -30,10 +31,15 @@ export function Header() {
               key={link.href}
               href={link.href}
               className={cn(
-                "text-sm font-medium transition-colors hover:text-primary",
-                pathname === link.href
-                  ? "text-primary"
-                  : "text-muted-foreground"
+                "text-sm font-medium transition-colors",
+                link.highlight
+                  ? "bg-primary text-primary-foreground px-3 py-1.5 rounded-full hover:bg-primary/90"
+                  : cn(
+                      "hover:text-primary",
+                      pathname === link.href
+                        ? "text-primary"
+                        : "text-muted-foreground"
+                    )
               )}
             >
               {link.label}

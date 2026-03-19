@@ -1,6 +1,8 @@
+import Link from "next/link"
 import { SearchBar } from "@/components/SearchBar"
 import { ProfileFilter } from "@/components/ProfileFilter"
 import { QuickLinks } from "@/components/QuickLinks"
+import { Button } from "@/components/ui/button"
 
 export default function HomePage() {
   return (
@@ -14,8 +16,18 @@ export default function HomePage() {
           Votre guide homéopathique complet
         </p>
 
+        {/* CTA principal */}
+        <div className="mb-8">
+          <Link href="/trouver-remede">
+            <Button size="lg" className="text-lg px-8 py-6">
+              Trouver un remède pour mes symptômes
+            </Button>
+          </Link>
+        </div>
+
         {/* Search Section */}
         <div className="max-w-2xl mx-auto space-y-4">
+          <p className="text-sm text-muted-foreground">Ou recherchez directement :</p>
           <SearchBar />
           <ProfileFilter />
         </div>
