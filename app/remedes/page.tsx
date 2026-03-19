@@ -15,23 +15,38 @@ export default function RemediesPage() {
   const [activeLetter, setActiveLetter] = useState<string | undefined>()
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({})
 
-  // Fetch remedies from Supabase (all records, no limit)
+  // Fetch remedies from Supabase (all records in batches)
   useEffect(() => {
     async function fetchRemedes() {
       const supabase = createClient()
 
-      // Fetch all remedies - Supabase default limit is 1000, we need more
-      const { data, error } = await supabase
-        .from('remedes')
-        .select('*')
-        .order('nom')
-        .range(0, 2999) // Fetch up to 3000 remedies
+      // Fetch all remedies in batches
+      let allRemedes: Remede[] = []
+      let offset = 0
+      const batchSize = 1000
 
-      if (error) {
-        console.error('Error fetching remedes:', error)
-      } else if (data) {
-        setRemedes(data)
+      while (true) {
+        const { data, error } = await supabase
+          .from('remedes')
+          .select('*')
+          .order('nom')
+          .range(offset, offset + batchSize - 1)
+
+        if (error) {
+          console.error('Error fetching remedes:', error)
+          break
+        }
+
+        if (!data || data.length === 0) break
+
+        allRemedes = [...allRemedes, ...data]
+        offset += batchSize
+
+        // Safety limit
+        if (offset >= 5000) break
       }
+
+      setRemedes(allRemedes)
       setLoading(false)
     }
 
