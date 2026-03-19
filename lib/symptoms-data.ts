@@ -89,7 +89,7 @@ export const SYMPTOM_CATEGORIES: SymptomCategory[] = [
         id: 'tete-douleurs',
         nom: 'Maux de tête et migraines',
         symptomes: [
-          { id: 'cephalee-frontale', nom: 'Mal de tête frontal', description: 'Douleur au niveau du front', keywords: ['head', 'pain', 'frontal', 'forehead'] },
+          { id: 'cephalee-frontale', nom: 'Mal de tête frontal', description: 'Douleur au niveau du front', keywords: ['head', 'pain', 'frontal', 'forehead', 'tête', 'douleur', 'front'] },
           { id: 'cephalee-occipitale', nom: 'Mal de tête à l\'arrière', description: 'Douleur à l\'arrière de la tête (occiput)', keywords: ['head', 'pain', 'occipital', 'back'] },
           { id: 'cephalee-temporale', nom: 'Mal de tête aux tempes', description: 'Douleur sur les côtés de la tête', keywords: ['head', 'pain', 'temporal', 'temple'] },
           { id: 'cephalee-vertex', nom: 'Mal de tête au sommet', description: 'Douleur au sommet du crâne', keywords: ['head', 'pain', 'vertex', 'top'] },
@@ -319,8 +319,8 @@ export const SYMPTOM_CATEGORIES: SymptomCategory[] = [
         id: 'estomac',
         nom: 'Estomac',
         symptomes: [
-          { id: 'nausees', nom: 'Nausées', keywords: ['nausea', 'sick'] },
-          { id: 'vomissements', nom: 'Vomissements', keywords: ['vomiting', 'vomit'] },
+          { id: 'nausees', nom: 'Nausées', keywords: ['nausea', 'sick', 'nausée', 'nausées', 'nauséeux'] },
+          { id: 'vomissements', nom: 'Vomissements', keywords: ['vomiting', 'vomit', 'vomissement', 'vomir', 'stomach'] },
           { id: 'brulures-estomac', nom: 'Brûlures d\'estomac', keywords: ['stomach', 'burning', 'heartburn'] },
           { id: 'reflux', nom: 'Reflux gastrique', keywords: ['reflux', 'acid', 'regurgitation'] },
           { id: 'indigestion', nom: 'Indigestion', keywords: ['indigestion', 'dyspepsia'] },
@@ -337,8 +337,8 @@ export const SYMPTOM_CATEGORIES: SymptomCategory[] = [
         id: 'intestins',
         nom: 'Intestins',
         symptomes: [
-          { id: 'diarrhee', nom: 'Diarrhée', keywords: ['diarrhea', 'diarrhoea', 'loose stool'] },
-          { id: 'constipation', nom: 'Constipation', keywords: ['constipation', 'stool'] },
+          { id: 'diarrhee', nom: 'Diarrhée', keywords: ['diarrhea', 'diarrhoea', 'loose stool', 'diarrhée', 'selles liquides', 'stool'] },
+          { id: 'constipation', nom: 'Constipation', keywords: ['constipation', 'stool', 'selles', 'rectum'] },
           { id: 'ballonnements', nom: 'Ballonnements', keywords: ['bloating', 'distension', 'gas'] },
           { id: 'flatulences', nom: 'Flatulences / Gaz', keywords: ['flatulence', 'gas', 'wind'] },
           { id: 'coliques', nom: 'Coliques', keywords: ['colic', 'colicky'] },
@@ -384,8 +384,8 @@ export const SYMPTOM_CATEGORIES: SymptomCategory[] = [
         id: 'toux',
         nom: 'Toux',
         symptomes: [
-          { id: 'toux-seche', nom: 'Toux sèche', keywords: ['cough', 'dry'] },
-          { id: 'toux-grasse', nom: 'Toux grasse (productive)', keywords: ['cough', 'wet', 'productive', 'loose'] },
+          { id: 'toux-seche', nom: 'Toux sèche', keywords: ['cough', 'dry', 'toux', 'sèche', 'sec'] },
+          { id: 'toux-grasse', nom: 'Toux grasse (productive)', keywords: ['cough', 'wet', 'productive', 'loose', 'toux', 'grasse', 'expectoration'] },
           { id: 'toux-aboyante', nom: 'Toux aboyante', description: 'Comme un chien', keywords: ['cough', 'barking', 'croup'] },
           { id: 'toux-quinteuse', nom: 'Quintes de toux', keywords: ['cough', 'paroxysmal', 'fit'] },
           { id: 'toux-nocturne', nom: 'Toux nocturne', keywords: ['cough', 'night'] },
@@ -655,8 +655,8 @@ export const SYMPTOM_CATEGORIES: SymptomCategory[] = [
         id: 'anxiete-stress',
         nom: 'Anxiété et stress',
         symptomes: [
-          { id: 'anxiete', nom: 'Anxiété', keywords: ['anxiety', 'anxious', 'worry'] },
-          { id: 'stress', nom: 'Stress', keywords: ['stress'] },
+          { id: 'anxiete', nom: 'Anxiété', keywords: ['anxiety', 'anxious', 'worry', 'anxiété', 'angoisse', 'peur', 'mind'] },
+          { id: 'stress', nom: 'Stress', keywords: ['stress', 'tension', 'nerveux', 'mind'] },
           { id: 'angoisse', nom: 'Angoisse', keywords: ['anguish', 'distress'] },
           { id: 'panique', nom: 'Attaque de panique', keywords: ['panic', 'attack'] },
           { id: 'phobies', nom: 'Phobies', keywords: ['phobia', 'fear'] },
@@ -681,7 +681,7 @@ export const SYMPTOM_CATEGORIES: SymptomCategory[] = [
         id: 'sommeil',
         nom: 'Sommeil',
         symptomes: [
-          { id: 'insomnie', nom: 'Insomnie', keywords: ['insomnia', 'sleepless'] },
+          { id: 'insomnie', nom: 'Insomnie', keywords: ['insomnia', 'sleepless', 'sleep', 'sommeil', 'dormir'] },
           { id: 'difficulte-endormissement', nom: 'Difficulté d\'endormissement', keywords: ['sleep', 'falling asleep', 'difficulty'] },
           { id: 'reveils-nocturnes', nom: 'Réveils nocturnes', keywords: ['waking', 'night'] },
           { id: 'cauchemars', nom: 'Cauchemars', keywords: ['nightmare', 'dream'] },

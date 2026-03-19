@@ -149,17 +149,17 @@ export default function TrouverRemedePage() {
       // Collecter tous les mots-clés
       const allKeywords = Array.from(keywordToUserSymptom.keys())
 
-      // Rechercher les symptômes OOREP correspondants - on cherche des matchs PRÉCIS
-      const searchTerms = allKeywords.slice(0, 10)
+      // Rechercher les symptômes OOREP correspondants
+      const searchTerms = allKeywords.slice(0, 15)
       const symptomeData: { id: string; nom: string; matchedKeyword: string }[] = []
 
       for (const term of searchTerms) {
-        // Chercher des symptômes qui contiennent ce terme spécifique
+        // Chercher des symptômes qui contiennent ce terme
         const { data } = await supabase
           .from('symptomes')
           .select('id, nom')
           .ilike('nom', `%${term}%`)
-          .limit(5) // Limiter pour éviter trop de résultats génériques
+          .limit(15)
 
         if (data) {
           (data as { id: string; nom: string }[]).forEach(d => {
@@ -177,7 +177,7 @@ export default function TrouverRemedePage() {
       // Dédupliquer par ID
       const uniqueSymptomeIds = Array.from(new Set(symptomeData.map(s => s.id)))
 
-      // Trouver les remèdes associés - UNIQUEMENT les grades élevés (2 et 3)
+      // Trouver les remèdes associés - tous les grades
       const { data: associations } = await supabase
         .from('symptomes_remedes')
         .select(`
@@ -186,10 +186,9 @@ export default function TrouverRemedePage() {
           grade,
           remedes (id, nom, nom_complet)
         `)
-        .in('symptome_id', uniqueSymptomeIds.slice(0, 30))
-        .gte('grade', 2) // Seulement grade 2 et 3 (remèdes spécifiques)
+        .in('symptome_id', uniqueSymptomeIds.slice(0, 50))
         .order('grade', { ascending: false })
-        .limit(500)
+        .limit(1000)
 
       if (!associations) {
         setRemedyResults([])
@@ -266,33 +265,47 @@ export default function TrouverRemedePage() {
       results = results.filter(r => r.matchedUserSymptoms.length > 0)
 
       // Trier par:
-      // 1. Nombre de symptômes utilisateur matchés
+      // 1. Score total (prend en compte les grades)
       // 2. Nombre de grades 3 (très spécifique)
-      // 3. Score total
+      // 3. Nombre de symptômes utilisateur matchés
       results.sort((a, b) => {
-        const symDiff = b.matchedUserSymptoms.length - a.matchedUserSymptoms.length
-        if (symDiff !== 0) return symDiff
+        // Score normalisé (score / nombre de matchs pour favoriser la spécificité)
+        const scoreA = a.totalScore
+        const scoreB = b.totalScore
+        if (scoreB !== scoreA) return scoreB - scoreA
+
         const gradeDiff = b.highGradeCount - a.highGradeCount
         if (gradeDiff !== 0) return gradeDiff
-        return b.totalScore - a.totalScore
+
+        return b.matchedUserSymptoms.length - a.matchedUserSymptoms.length
       })
 
       // Diversifier les résultats - éviter trop de remèdes commençant par la même lettre
       const diversifiedResults: RemedyResult[] = []
       const letterCounts = new Map<string, number>()
+      const maxPerLetter = 2
 
+      // Premier passage : prendre les meilleurs de chaque lettre
       for (const remedy of results) {
         const firstLetter = remedy.nom.charAt(0).toUpperCase()
         const count = letterCounts.get(firstLetter) || 0
 
-        // Maximum 2 remèdes par lettre
-        if (count < 2) {
+        if (count < maxPerLetter) {
           diversifiedResults.push(remedy)
           letterCounts.set(firstLetter, count + 1)
         }
 
-        // Arrêter à 10 résultats
         if (diversifiedResults.length >= 10) break
+      }
+
+      // Si on n'a pas assez de résultats, compléter sans restriction de lettre
+      if (diversifiedResults.length < 10) {
+        for (const remedy of results) {
+          if (!diversifiedResults.find(r => r.id === remedy.id)) {
+            diversifiedResults.push(remedy)
+            if (diversifiedResults.length >= 10) break
+          }
+        }
       }
 
       setRemedyResults(diversifiedResults)
