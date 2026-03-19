@@ -26,8 +26,8 @@ export default function SymptomesPage() {
           *,
           symptomes_remedes(count)
         `)
-        .order('nom')
-        .limit(500) // Limit for performance
+        .order('categorie, nom')
+        .range(0, 2999) // Fetch up to 3000 symptoms
 
       if (error) {
         console.error('Error fetching symptomes:', error)

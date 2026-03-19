@@ -15,14 +15,17 @@ export default function RemediesPage() {
   const [activeLetter, setActiveLetter] = useState<string | undefined>()
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({})
 
-  // Fetch remedies from Supabase
+  // Fetch remedies from Supabase (all records, no limit)
   useEffect(() => {
     async function fetchRemedes() {
       const supabase = createClient()
+
+      // Fetch all remedies - Supabase default limit is 1000, we need more
       const { data, error } = await supabase
         .from('remedes')
         .select('*')
         .order('nom')
+        .range(0, 2999) // Fetch up to 3000 remedies
 
       if (error) {
         console.error('Error fetching remedes:', error)
