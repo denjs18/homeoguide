@@ -320,7 +320,7 @@ export const SYMPTOM_CATEGORIES: SymptomCategory[] = [
         nom: 'Estomac',
         symptomes: [
           { id: 'nausees', nom: 'Nausées', keywords: ['nausea', 'sick', 'nausée', 'nausées', 'nauséeux'] },
-          { id: 'vomissements', nom: 'Vomissements', keywords: ['vomiting', 'vomit', 'vomissement', 'vomir', 'stomach'] },
+          { id: 'vomissements', nom: 'Vomissements', keywords: ['vomiting', 'vomit', 'vomissement', 'vomir', 'stomach', 'estomac', 'nausea'] },
           { id: 'brulures-estomac', nom: 'Brûlures d\'estomac', keywords: ['stomach', 'burning', 'heartburn'] },
           { id: 'reflux', nom: 'Reflux gastrique', keywords: ['reflux', 'acid', 'regurgitation'] },
           { id: 'indigestion', nom: 'Indigestion', keywords: ['indigestion', 'dyspepsia'] },
@@ -337,7 +337,7 @@ export const SYMPTOM_CATEGORIES: SymptomCategory[] = [
         id: 'intestins',
         nom: 'Intestins',
         symptomes: [
-          { id: 'diarrhee', nom: 'Diarrhée', keywords: ['diarrhea', 'diarrhoea', 'loose stool', 'diarrhée', 'selles liquides', 'stool'] },
+          { id: 'diarrhee', nom: 'Diarrhée', keywords: ['diarrhea', 'diarrhoea', 'loose stool', 'diarrhée', 'selles liquides', 'stool', 'rectum', 'selles'] },
           { id: 'constipation', nom: 'Constipation', keywords: ['constipation', 'stool', 'selles', 'rectum'] },
           { id: 'ballonnements', nom: 'Ballonnements', keywords: ['bloating', 'distension', 'gas'] },
           { id: 'flatulences', nom: 'Flatulences / Gaz', keywords: ['flatulence', 'gas', 'wind'] },

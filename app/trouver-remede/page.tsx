@@ -150,21 +150,72 @@ export default function TrouverRemedePage() {
       const allKeywords = Array.from(keywordToUserSymptom.keys())
 
       // Rechercher les symptômes OOREP correspondants
-      const searchTerms = allKeywords.slice(0, 15)
+      const searchTerms = allKeywords.slice(0, 20)
       const symptomeData: { id: string; nom: string; matchedKeyword: string }[] = []
 
       for (const term of searchTerms) {
-        // Chercher des symptômes qui contiennent ce terme
-        const { data } = await supabase
+        // Chercher dans le nom du symptôme
+        const { data: nomData } = await supabase
           .from('symptomes')
           .select('id, nom')
           .ilike('nom', `%${term}%`)
-          .limit(15)
+          .limit(20)
 
-        if (data) {
-          (data as { id: string; nom: string }[]).forEach(d => {
+        if (nomData) {
+          (nomData as { id: string; nom: string }[]).forEach(d => {
             symptomeData.push({ ...d, matchedKeyword: term })
           })
+        }
+
+        // Chercher aussi dans les mots-clés (array contains)
+        const { data: mcData } = await supabase
+          .from('symptomes')
+          .select('id, nom')
+          .contains('mots_cles', [term.toLowerCase()])
+          .limit(20)
+
+        if (mcData) {
+          (mcData as { id: string; nom: string }[]).forEach(d => {
+            if (!symptomeData.find(s => s.id === d.id)) {
+              symptomeData.push({ ...d, matchedKeyword: term })
+            }
+          })
+        }
+      }
+
+      // Si pas de résultats, essayer une recherche plus large avec les catégories
+      if (symptomeData.length === 0) {
+        // Chercher par catégorie (Estomac pour vomiting, etc.)
+        const categoryMap: Record<string, string[]> = {
+          'vomit': ['Estomac', 'Stomach'],
+          'stomach': ['Estomac', 'Stomach'],
+          'head': ['Tête', 'Head'],
+          'cough': ['Toux', 'Cough'],
+          'diarr': ['Rectum', 'Selles', 'Stool'],
+          'anxiety': ['Psychisme', 'Mind'],
+          'sleep': ['Sommeil', 'Sleep'],
+        }
+
+        for (const term of searchTerms) {
+          for (const [key, categories] of Object.entries(categoryMap)) {
+            if (term.toLowerCase().includes(key)) {
+              for (const cat of categories) {
+                const { data } = await supabase
+                  .from('symptomes')
+                  .select('id, nom')
+                  .ilike('categorie', `%${cat}%`)
+                  .limit(30)
+
+                if (data) {
+                  (data as { id: string; nom: string }[]).forEach(d => {
+                    if (!symptomeData.find(s => s.id === d.id)) {
+                      symptomeData.push({ ...d, matchedKeyword: term })
+                    }
+                  })
+                }
+              }
+            }
+          }
         }
       }
 
