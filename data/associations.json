@@ -1,0 +1,490 @@
+[
+  {
+    "symptome_id": "fievre",
+    "remede_id": "aconitum-napellus",
+    "profils": ["adulte", "nourrisson", "enceinte"],
+    "grade": 3,
+    "dilution_recommandee": "9CH",
+    "posologie_adulte": "5 granules toutes les heures les premières heures, puis espacer",
+    "posologie_nourrisson": "3 granules dissous dans l'eau, 3 fois par jour",
+    "posologie_enceinte": "5 granules 3 fois par jour",
+    "notes": "À prendre dès les premiers frissons, dans les 24h du début des symptômes"
+  },
+  {
+    "symptome_id": "fievre",
+    "remede_id": "belladonna",
+    "profils": ["adulte", "nourrisson", "enceinte", "animal"],
+    "grade": 3,
+    "dilution_recommandee": "9CH",
+    "posologie_adulte": "5 granules toutes les heures, espacer selon amélioration",
+    "posologie_nourrisson": "3 granules dissous dans l'eau, toutes les 2 heures",
+    "posologie_enceinte": "5 granules toutes les 2 heures",
+    "posologie_animal": "3 granules toutes les 2 heures",
+    "notes": "Fièvre brutale avec visage rouge et chaud, pupilles dilatées"
+  },
+  {
+    "symptome_id": "fievre",
+    "remede_id": "ferrum-phosphoricum",
+    "profils": ["adulte", "nourrisson", "enceinte", "animal", "bovin"],
+    "grade": 2,
+    "dilution_recommandee": "9CH",
+    "posologie_adulte": "5 granules 3 fois par jour",
+    "posologie_nourrisson": "3 granules 3 fois par jour",
+    "posologie_enceinte": "5 granules 3 fois par jour",
+    "posologie_animal": "3 granules 3 fois par jour",
+    "posologie_bovin": "10 granules 2 fois par jour",
+    "notes": "Fièvre modérée, visage alternant pâleur et rougeur"
+  },
+  {
+    "symptome_id": "fievre",
+    "remede_id": "bryonia-alba",
+    "profils": ["adulte"],
+    "grade": 2,
+    "dilution_recommandee": "9CH",
+    "posologie_adulte": "5 granules 3 fois par jour",
+    "notes": "Grande soif, aggravation au moindre mouvement, besoin de repos absolu"
+  },
+  {
+    "symptome_id": "traumatisme",
+    "remede_id": "arnica-montana",
+    "profils": ["adulte", "nourrisson", "enceinte", "animal", "bovin"],
+    "grade": 3,
+    "dilution_recommandee": "9CH",
+    "posologie_adulte": "5 granules toutes les heures puis espacer",
+    "posologie_nourrisson": "3 granules dissous dans l'eau, 3 fois par jour",
+    "posologie_enceinte": "5 granules 3 fois par jour",
+    "posologie_animal": "3 granules 3 fois par jour",
+    "posologie_bovin": "10 granules 2 fois par jour",
+    "notes": "À prendre dès que possible après le traumatisme"
+  },
+  {
+    "symptome_id": "courbatures",
+    "remede_id": "arnica-montana",
+    "profils": ["adulte", "animal"],
+    "grade": 3,
+    "dilution_recommandee": "9CH",
+    "posologie_adulte": "5 granules matin et soir pendant 2-3 jours",
+    "posologie_animal": "3 granules 2 fois par jour",
+    "notes": "Idéal avant et après un effort physique intense"
+  },
+  {
+    "symptome_id": "courbatures",
+    "remede_id": "rhus-toxicodendron",
+    "profils": ["adulte"],
+    "grade": 2,
+    "dilution_recommandee": "9CH",
+    "posologie_adulte": "5 granules 3 fois par jour",
+    "notes": "Raideur au premier mouvement, amélioration en continuant à bouger"
+  },
+  {
+    "symptome_id": "rhume",
+    "remede_id": "allium-cepa",
+    "profils": ["adulte", "nourrisson", "enceinte"],
+    "grade": 3,
+    "dilution_recommandee": "9CH",
+    "posologie_adulte": "5 granules 3 à 4 fois par jour",
+    "posologie_nourrisson": "3 granules 3 fois par jour",
+    "posologie_enceinte": "5 granules 3 fois par jour",
+    "notes": "Écoulement nasal clair et irritant, larmoiement doux"
+  },
+  {
+    "symptome_id": "rhume",
+    "remede_id": "pulsatilla",
+    "profils": ["adulte", "nourrisson", "enceinte"],
+    "grade": 2,
+    "dilution_recommandee": "9CH",
+    "posologie_adulte": "5 granules 3 fois par jour",
+    "posologie_nourrisson": "3 granules 3 fois par jour",
+    "posologie_enceinte": "5 granules 3 fois par jour",
+    "notes": "Écoulement jaune-vert épais et non irritant, amélioration à l'air frais"
+  },
+  {
+    "symptome_id": "angine",
+    "remede_id": "belladonna",
+    "profils": ["adulte", "nourrisson", "enceinte"],
+    "grade": 3,
+    "dilution_recommandee": "9CH",
+    "posologie_adulte": "5 granules toutes les 2 heures",
+    "posologie_nourrisson": "3 granules toutes les 2 heures",
+    "posologie_enceinte": "5 granules toutes les 2 heures",
+    "notes": "Gorge rouge vif, apparition brutale, difficultés à avaler"
+  },
+  {
+    "symptome_id": "angine",
+    "remede_id": "mercurius-solubilis",
+    "profils": ["adulte"],
+    "grade": 2,
+    "dilution_recommandee": "9CH",
+    "posologie_adulte": "5 granules 3 fois par jour",
+    "notes": "Salivation abondante, mauvaise haleine, langue gardant l'empreinte des dents"
+  },
+  {
+    "symptome_id": "angine",
+    "remede_id": "phytolacca",
+    "profils": ["adulte", "enceinte"],
+    "grade": 2,
+    "dilution_recommandee": "9CH",
+    "posologie_adulte": "5 granules 3 fois par jour",
+    "posologie_enceinte": "5 granules 3 fois par jour",
+    "notes": "Douleur irradiant vers les oreilles à la déglutition"
+  },
+  {
+    "symptome_id": "coliques-nourrisson",
+    "remede_id": "chamomilla",
+    "profils": ["nourrisson"],
+    "grade": 3,
+    "dilution_recommandee": "9CH",
+    "posologie_nourrisson": "3 granules dissous dans l'eau, 3 fois par jour",
+    "notes": "Bébé calmé en étant porté, une joue rouge et une pâle"
+  },
+  {
+    "symptome_id": "coliques-nourrisson",
+    "remede_id": "colocynthis",
+    "profils": ["nourrisson"],
+    "grade": 3,
+    "dilution_recommandee": "9CH",
+    "posologie_nourrisson": "3 granules dissous dans l'eau, à chaque crise",
+    "notes": "Bébé replié sur lui-même, soulagé par la pression sur le ventre"
+  },
+  {
+    "symptome_id": "coliques-nourrisson",
+    "remede_id": "magnesia-phosphorica",
+    "profils": ["nourrisson"],
+    "grade": 2,
+    "dilution_recommandee": "9CH",
+    "posologie_nourrisson": "3 granules dissous dans l'eau tiède, à chaque crise",
+    "notes": "Amélioration par la chaleur (bouillotte tiède sur le ventre)"
+  },
+  {
+    "symptome_id": "poussees-dentaires",
+    "remede_id": "chamomilla",
+    "profils": ["nourrisson"],
+    "grade": 3,
+    "dilution_recommandee": "9CH",
+    "posologie_nourrisson": "3 granules 3 à 4 fois par jour",
+    "notes": "Bébé irritable, capricieux, une joue rouge"
+  },
+  {
+    "symptome_id": "poussees-dentaires",
+    "remede_id": "belladonna",
+    "profils": ["nourrisson"],
+    "grade": 2,
+    "dilution_recommandee": "9CH",
+    "posologie_nourrisson": "3 granules 3 fois par jour",
+    "notes": "Gencives rouges et gonflées, parfois fièvre"
+  },
+  {
+    "symptome_id": "nausees",
+    "remede_id": "nux-vomica",
+    "profils": ["adulte"],
+    "grade": 3,
+    "dilution_recommandee": "9CH",
+    "posologie_adulte": "5 granules 3 fois par jour",
+    "notes": "Nausées après excès alimentaires ou d'alcool, langue chargée"
+  },
+  {
+    "symptome_id": "nausees",
+    "remede_id": "ipeca",
+    "profils": ["adulte", "nourrisson", "enceinte"],
+    "grade": 3,
+    "dilution_recommandee": "9CH",
+    "posologie_adulte": "5 granules à chaque nausée",
+    "posologie_nourrisson": "3 granules 3 fois par jour",
+    "posologie_enceinte": "5 granules dès les nausées, jusqu'à 6 fois par jour",
+    "notes": "Nausées persistantes avec langue propre, non soulagées par le vomissement"
+  },
+  {
+    "symptome_id": "mal-transports",
+    "remede_id": "cocculus-indicus",
+    "profils": ["adulte", "nourrisson", "enceinte"],
+    "grade": 3,
+    "dilution_recommandee": "9CH",
+    "posologie_adulte": "5 granules avant le départ, puis toutes les heures si besoin",
+    "posologie_nourrisson": "3 granules avant le départ et pendant le voyage",
+    "posologie_enceinte": "5 granules avant le départ et pendant le voyage",
+    "notes": "Aggravation par le mouvement et l'odeur de nourriture"
+  },
+  {
+    "symptome_id": "gastro-enterite",
+    "remede_id": "arsenicum-album",
+    "profils": ["adulte", "nourrisson", "animal"],
+    "grade": 3,
+    "dilution_recommandee": "9CH",
+    "posologie_adulte": "5 granules toutes les heures, espacer selon amélioration",
+    "posologie_nourrisson": "3 granules toutes les 2 heures",
+    "posologie_animal": "3 granules toutes les 2 heures",
+    "notes": "Diarrhée et vomissements avec grande faiblesse et agitation anxieuse"
+  },
+  {
+    "symptome_id": "gastro-enterite",
+    "remede_id": "veratrum-album",
+    "profils": ["adulte"],
+    "grade": 3,
+    "dilution_recommandee": "9CH",
+    "posologie_adulte": "5 granules toutes les heures",
+    "notes": "Vomissements et diarrhée simultanés avec sueurs froides et prostration"
+  },
+  {
+    "symptome_id": "insomnie",
+    "remede_id": "coffea-cruda",
+    "profils": ["adulte"],
+    "grade": 3,
+    "dilution_recommandee": "15CH",
+    "posologie_adulte": "5 granules au coucher",
+    "notes": "Insomnie par excitation mentale, afflux d'idées, après une bonne nouvelle"
+  },
+  {
+    "symptome_id": "insomnie",
+    "remede_id": "ignatia-amara",
+    "profils": ["adulte", "enceinte"],
+    "grade": 2,
+    "dilution_recommandee": "15CH",
+    "posologie_adulte": "5 granules au coucher",
+    "posologie_enceinte": "5 granules au coucher",
+    "notes": "Insomnie par contrariété, chagrin, soucis"
+  },
+  {
+    "symptome_id": "stress",
+    "remede_id": "ignatia-amara",
+    "profils": ["adulte", "enceinte"],
+    "grade": 3,
+    "dilution_recommandee": "15CH",
+    "posologie_adulte": "5 granules 3 fois par jour ou à la demande",
+    "posologie_enceinte": "5 granules 3 fois par jour",
+    "notes": "Stress avec boule dans la gorge, soupirs, émotions refoulées"
+  },
+  {
+    "symptome_id": "trac",
+    "remede_id": "gelsemium",
+    "profils": ["adulte", "nourrisson"],
+    "grade": 3,
+    "dilution_recommandee": "15CH",
+    "posologie_adulte": "5 granules la veille, le matin et avant l'épreuve",
+    "posologie_nourrisson": "3 granules avant un événement stressant",
+    "notes": "Trac avec tremblements, jambes qui flageolent, diarrhée"
+  },
+  {
+    "symptome_id": "trac",
+    "remede_id": "argentum-nitricum",
+    "profils": ["adulte"],
+    "grade": 3,
+    "dilution_recommandee": "15CH",
+    "posologie_adulte": "5 granules la veille et le jour J",
+    "notes": "Trac avec précipitation, agitation, envie de sucre"
+  },
+  {
+    "symptome_id": "chagrin",
+    "remede_id": "ignatia-amara",
+    "profils": ["adulte", "nourrisson", "enceinte"],
+    "grade": 3,
+    "dilution_recommandee": "15CH ou 30CH",
+    "posologie_adulte": "5 granules 3 fois par jour ou une dose en 30CH",
+    "posologie_nourrisson": "3 granules 2 fois par jour",
+    "posologie_enceinte": "5 granules 3 fois par jour",
+    "notes": "Chagrin récent, deuil, séparation, émotions qui ne peuvent s'exprimer"
+  },
+  {
+    "symptome_id": "chagrin",
+    "remede_id": "natrum-muriaticum",
+    "profils": ["adulte"],
+    "grade": 2,
+    "dilution_recommandee": "15CH ou 30CH",
+    "posologie_adulte": "5 granules une fois par jour ou une dose en 30CH",
+    "notes": "Chagrin ancien, intériorisé, aggravé par la consolation"
+  },
+  {
+    "symptome_id": "cystite",
+    "remede_id": "cantharis",
+    "profils": ["adulte", "enceinte"],
+    "grade": 3,
+    "dilution_recommandee": "9CH",
+    "posologie_adulte": "5 granules toutes les heures, espacer selon amélioration",
+    "posologie_enceinte": "5 granules toutes les 2 heures",
+    "notes": "Brûlures intenses, besoin constant et urgent d'uriner"
+  },
+  {
+    "symptome_id": "cystite",
+    "remede_id": "staphysagria",
+    "profils": ["adulte", "enceinte"],
+    "grade": 2,
+    "dilution_recommandee": "9CH",
+    "posologie_adulte": "5 granules 3 fois par jour",
+    "posologie_enceinte": "5 granules 3 fois par jour",
+    "notes": "Cystite après rapports sexuels (cystite de la lune de miel)"
+  },
+  {
+    "symptome_id": "regles-douloureuses",
+    "remede_id": "magnesia-phosphorica",
+    "profils": ["adulte"],
+    "grade": 3,
+    "dilution_recommandee": "9CH",
+    "posologie_adulte": "5 granules toutes les heures pendant les douleurs",
+    "notes": "Douleurs crampoïdes améliorées par la chaleur et en position repliée"
+  },
+  {
+    "symptome_id": "regles-douloureuses",
+    "remede_id": "colocynthis",
+    "profils": ["adulte"],
+    "grade": 2,
+    "dilution_recommandee": "9CH",
+    "posologie_adulte": "5 granules à chaque crise douloureuse",
+    "notes": "Amélioration pliée en deux et par la pression forte"
+  },
+  {
+    "symptome_id": "bouffees-chaleur",
+    "remede_id": "lachesis",
+    "profils": ["adulte"],
+    "grade": 3,
+    "dilution_recommandee": "15CH",
+    "posologie_adulte": "5 granules matin et soir",
+    "notes": "Bouffées de chaleur avec intolérance aux vêtements serrés"
+  },
+  {
+    "symptome_id": "bouffees-chaleur",
+    "remede_id": "sepia",
+    "profils": ["adulte"],
+    "grade": 2,
+    "dilution_recommandee": "15CH",
+    "posologie_adulte": "5 granules matin et soir",
+    "notes": "Bouffées avec sensation de ptôse, fatigue, indifférence"
+  },
+  {
+    "symptome_id": "piqures-insectes",
+    "remede_id": "apis-mellifica",
+    "profils": ["adulte", "nourrisson", "enceinte", "animal"],
+    "grade": 3,
+    "dilution_recommandee": "15CH",
+    "posologie_adulte": "5 granules toutes les heures, espacer selon amélioration",
+    "posologie_nourrisson": "3 granules toutes les heures",
+    "posologie_enceinte": "5 granules toutes les heures",
+    "posologie_animal": "3 granules toutes les heures",
+    "notes": "Gonflement rosé avec sensation de piqûre, amélioré par le froid"
+  },
+  {
+    "symptome_id": "piqures-insectes",
+    "remede_id": "ledum-palustre",
+    "profils": ["adulte", "nourrisson", "animal"],
+    "grade": 2,
+    "dilution_recommandee": "9CH",
+    "posologie_adulte": "5 granules 3 fois par jour",
+    "posologie_nourrisson": "3 granules 3 fois par jour",
+    "posologie_animal": "3 granules 3 fois par jour",
+    "notes": "Amélioration par les applications froides"
+  },
+  {
+    "symptome_id": "urticaire",
+    "remede_id": "urtica-urens",
+    "profils": ["adulte", "nourrisson"],
+    "grade": 3,
+    "dilution_recommandee": "9CH",
+    "posologie_adulte": "5 granules toutes les heures",
+    "posologie_nourrisson": "3 granules toutes les 2 heures",
+    "notes": "Démangeaisons et brûlures aggravées par l'eau froide"
+  },
+  {
+    "symptome_id": "urticaire",
+    "remede_id": "apis-mellifica",
+    "profils": ["adulte", "nourrisson", "enceinte"],
+    "grade": 2,
+    "dilution_recommandee": "15CH",
+    "posologie_adulte": "5 granules toutes les heures",
+    "posologie_nourrisson": "3 granules toutes les 2 heures",
+    "posologie_enceinte": "5 granules toutes les heures",
+    "notes": "Gonflement rosé amélioré par le froid"
+  },
+  {
+    "symptome_id": "grippe",
+    "remede_id": "gelsemium",
+    "profils": ["adulte", "enceinte"],
+    "grade": 3,
+    "dilution_recommandee": "9CH",
+    "posologie_adulte": "5 granules 3 fois par jour",
+    "posologie_enceinte": "5 granules 3 fois par jour",
+    "notes": "Courbatures, frissons, absence de soif malgré la fièvre, prostration"
+  },
+  {
+    "symptome_id": "grippe",
+    "remede_id": "bryonia-alba",
+    "profils": ["adulte"],
+    "grade": 2,
+    "dilution_recommandee": "9CH",
+    "posologie_adulte": "5 granules 3 fois par jour",
+    "notes": "Grande soif, douleurs aggravées au moindre mouvement"
+  },
+  {
+    "symptome_id": "allergie-saisonniere",
+    "remede_id": "allium-cepa",
+    "profils": ["adulte", "enceinte"],
+    "grade": 3,
+    "dilution_recommandee": "9CH",
+    "posologie_adulte": "5 granules 3 à 4 fois par jour",
+    "posologie_enceinte": "5 granules 3 fois par jour",
+    "notes": "Écoulement nasal clair et irritant, amélioration à l'air frais"
+  },
+  {
+    "symptome_id": "allergie-saisonniere",
+    "remede_id": "euphrasia",
+    "profils": ["adulte", "enceinte"],
+    "grade": 2,
+    "dilution_recommandee": "9CH",
+    "posologie_adulte": "5 granules 3 à 4 fois par jour",
+    "posologie_enceinte": "5 granules 3 fois par jour",
+    "notes": "Prédominance des symptômes oculaires, larmoiement irritant"
+  },
+  {
+    "symptome_id": "mammite",
+    "remede_id": "phytolacca",
+    "profils": ["bovin"],
+    "grade": 3,
+    "dilution_recommandee": "9CH",
+    "posologie_bovin": "10 granules matin et soir dans l'eau ou la ration",
+    "notes": "Mamelle dure, douloureuse, lait grumeleux"
+  },
+  {
+    "symptome_id": "mammite",
+    "remede_id": "belladonna",
+    "profils": ["bovin"],
+    "grade": 2,
+    "dilution_recommandee": "9CH",
+    "posologie_bovin": "10 granules 2 fois par jour",
+    "notes": "Mamelle rouge et chaude, inflammation aiguë"
+  },
+  {
+    "symptome_id": "mammite",
+    "remede_id": "apis-mellifica",
+    "profils": ["bovin"],
+    "grade": 2,
+    "dilution_recommandee": "15CH",
+    "posologie_bovin": "10 granules 2 fois par jour",
+    "notes": "Œdème de la mamelle, amélioration par les applications froides"
+  },
+  {
+    "symptome_id": "entorse",
+    "remede_id": "arnica-montana",
+    "profils": ["adulte", "animal"],
+    "grade": 3,
+    "dilution_recommandee": "9CH",
+    "posologie_adulte": "5 granules toutes les heures le premier jour, puis 3 fois par jour",
+    "posologie_animal": "3 granules 3 fois par jour",
+    "notes": "En première intention pour le traumatisme"
+  },
+  {
+    "symptome_id": "entorse",
+    "remede_id": "ruta-graveolens",
+    "profils": ["adulte"],
+    "grade": 2,
+    "dilution_recommandee": "9CH",
+    "posologie_adulte": "5 granules 3 fois par jour",
+    "notes": "Atteinte des ligaments et tendons"
+  },
+  {
+    "symptome_id": "herpes-labial",
+    "remede_id": "natrum-muriaticum",
+    "profils": ["adulte", "enceinte"],
+    "grade": 3,
+    "dilution_recommandee": "15CH",
+    "posologie_adulte": "5 granules 3 fois par jour dès les premiers picotements",
+    "posologie_enceinte": "5 granules 3 fois par jour",
+    "notes": "Herpès déclenché par le soleil ou les émotions"
+  }
+]
