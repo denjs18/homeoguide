@@ -19,25 +19,37 @@ export default function SymptomesPage() {
     async function fetchSymptomes() {
       const supabase = createClient()
 
-      // Get symptoms with count of associated remedies
-      const { data, error } = await supabase
-        .from('symptomes')
-        .select(`
-          *,
-          symptomes_remedes(count)
-        `)
-        .order('categorie, nom')
-        .range(0, 2999) // Fetch up to 3000 symptoms
+      // Fetch symptoms in batches to get all data
+      let allSymptomes: any[] = []
+      let offset = 0
+      const batchSize = 1000
 
-      if (error) {
-        console.error('Error fetching symptomes:', error)
-      } else if (data) {
-        const symptomesWithCount = (data as any[]).map(s => ({
-          ...s,
-          remedesCount: s.symptomes_remedes?.[0]?.count || 0
-        }))
-        setSymptomes(symptomesWithCount)
+      while (true) {
+        const { data, error } = await supabase
+          .from('symptomes')
+          .select('id, nom, categorie, mots_cles')
+          .order('nom')
+          .range(offset, offset + batchSize - 1)
+
+        if (error) {
+          console.error('Error fetching symptomes:', error)
+          break
+        }
+
+        if (!data || data.length === 0) break
+
+        allSymptomes = [...allSymptomes, ...data]
+        offset += batchSize
+
+        // Safety limit
+        if (offset >= 20000) break
       }
+
+      const symptomesWithCount = allSymptomes.map(s => ({
+        ...s,
+        remedesCount: 0 // We'll skip count for now to improve performance
+      }))
+      setSymptomes(symptomesWithCount)
       setLoading(false)
     }
 
