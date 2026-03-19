@@ -19,7 +19,7 @@ export default function SymptomesPage() {
     async function fetchSymptomes() {
       const supabase = createClient()
 
-      // Fetch symptoms in batches to get all data
+      // Fetch symptoms with remedy count
       let allSymptomes: any[] = []
       let offset = 0
       const batchSize = 1000
@@ -27,7 +27,10 @@ export default function SymptomesPage() {
       while (true) {
         const { data, error } = await supabase
           .from('symptomes')
-          .select('id, nom, categorie, mots_cles')
+          .select(`
+            id, nom, categorie, mots_cles,
+            symptomes_remedes(count)
+          `)
           .order('nom')
           .range(offset, offset + batchSize - 1)
 
@@ -45,9 +48,9 @@ export default function SymptomesPage() {
         if (offset >= 20000) break
       }
 
-      const symptomesWithCount = allSymptomes.map(s => ({
+      const symptomesWithCount = allSymptomes.map((s: any) => ({
         ...s,
-        remedesCount: 0 // We'll skip count for now to improve performance
+        remedesCount: s.symptomes_remedes?.[0]?.count || 0
       }))
       setSymptomes(symptomesWithCount)
       setLoading(false)
