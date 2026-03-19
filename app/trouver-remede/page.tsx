@@ -149,16 +149,17 @@ export default function TrouverRemedePage() {
       // Collecter tous les mots-clés
       const allKeywords = Array.from(keywordToUserSymptom.keys())
 
-      // Rechercher les symptômes OOREP correspondants avec leurs noms
-      const searchTerms = allKeywords.slice(0, 15)
+      // Rechercher les symptômes OOREP correspondants - on cherche des matchs PRÉCIS
+      const searchTerms = allKeywords.slice(0, 10)
       const symptomeData: { id: string; nom: string; matchedKeyword: string }[] = []
 
       for (const term of searchTerms) {
+        // Chercher des symptômes qui contiennent ce terme spécifique
         const { data } = await supabase
           .from('symptomes')
           .select('id, nom')
           .ilike('nom', `%${term}%`)
-          .limit(10)
+          .limit(5) // Limiter pour éviter trop de résultats génériques
 
         if (data) {
           (data as { id: string; nom: string }[]).forEach(d => {
@@ -176,7 +177,7 @@ export default function TrouverRemedePage() {
       // Dédupliquer par ID
       const uniqueSymptomeIds = Array.from(new Set(symptomeData.map(s => s.id)))
 
-      // Trouver les remèdes associés
+      // Trouver les remèdes associés - UNIQUEMENT les grades élevés (2 et 3)
       const { data: associations } = await supabase
         .from('symptomes_remedes')
         .select(`
@@ -185,9 +186,10 @@ export default function TrouverRemedePage() {
           grade,
           remedes (id, nom, nom_complet)
         `)
-        .in('symptome_id', uniqueSymptomeIds.slice(0, 50))
+        .in('symptome_id', uniqueSymptomeIds.slice(0, 30))
+        .gte('grade', 2) // Seulement grade 2 et 3 (remèdes spécifiques)
         .order('grade', { ascending: false })
-        .limit(300)
+        .limit(500)
 
       if (!associations) {
         setRemedyResults([])
@@ -209,7 +211,7 @@ export default function TrouverRemedePage() {
       })
 
       // Agréger par remède avec les détails
-      const remedyMap = new Map<string, RemedyResult>()
+      const remedyMap = new Map<string, RemedyResult & { highGradeCount: number }>()
 
       for (const assoc of associations as any[]) {
         if (!assoc.remedes) continue
@@ -233,6 +235,7 @@ export default function TrouverRemedePage() {
         const existing = remedyMap.get(assoc.remede_id)
         if (existing) {
           existing.totalScore += assoc.grade || 1
+          if (assoc.grade >= 3) existing.highGradeCount++
           matchedKeywords.forEach(k => {
             if (!existing.matchedKeywords.includes(k)) {
               existing.matchedKeywords.push(k)
@@ -250,23 +253,49 @@ export default function TrouverRemedePage() {
             nom_complet: assoc.remedes.nom_complet,
             matchedKeywords: matchedKeywords,
             matchedUserSymptoms: userSymptoms,
-            totalScore: assoc.grade || 1
+            totalScore: assoc.grade || 1,
+            highGradeCount: assoc.grade >= 3 ? 1 : 0
           })
         }
       }
 
-      // Trier par score et nombre de symptômes matchés
-      const sortedResults = Array.from(remedyMap.values())
-        .sort((a, b) => {
-          // D'abord par nombre de symptômes utilisateur matchés
-          const symDiff = b.matchedUserSymptoms.length - a.matchedUserSymptoms.length
-          if (symDiff !== 0) return symDiff
-          // Puis par score
-          return b.totalScore - a.totalScore
-        })
-        .slice(0, 20)
+      // Filtrer et trier intelligemment
+      let results = Array.from(remedyMap.values())
 
-      setRemedyResults(sortedResults)
+      // Garder seulement les remèdes qui matchent au moins un symptôme utilisateur
+      results = results.filter(r => r.matchedUserSymptoms.length > 0)
+
+      // Trier par:
+      // 1. Nombre de symptômes utilisateur matchés
+      // 2. Nombre de grades 3 (très spécifique)
+      // 3. Score total
+      results.sort((a, b) => {
+        const symDiff = b.matchedUserSymptoms.length - a.matchedUserSymptoms.length
+        if (symDiff !== 0) return symDiff
+        const gradeDiff = b.highGradeCount - a.highGradeCount
+        if (gradeDiff !== 0) return gradeDiff
+        return b.totalScore - a.totalScore
+      })
+
+      // Diversifier les résultats - éviter trop de remèdes commençant par la même lettre
+      const diversifiedResults: RemedyResult[] = []
+      const letterCounts = new Map<string, number>()
+
+      for (const remedy of results) {
+        const firstLetter = remedy.nom.charAt(0).toUpperCase()
+        const count = letterCounts.get(firstLetter) || 0
+
+        // Maximum 2 remèdes par lettre
+        if (count < 2) {
+          diversifiedResults.push(remedy)
+          letterCounts.set(firstLetter, count + 1)
+        }
+
+        // Arrêter à 10 résultats
+        if (diversifiedResults.length >= 10) break
+      }
+
+      setRemedyResults(diversifiedResults)
     } catch (error) {
       console.error('Error finding remedies:', error)
       setRemedyResults([])
