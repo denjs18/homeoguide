@@ -34,7 +34,13 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# large data files (OOREP source)
+# large data files
 /oorep-repo/
 /data/oorep/
 /data/sql/
+/scripts/openhomeopath/OpenHomeopath.sql
+/scripts/openhomeopath/OpenHomeopath.sql.gz
+/scripts/openhomeopath/extracted/
+
+# claude
+.claude/

@@ -1,97 +1,78 @@
 import Link from "next/link"
-import { SearchBar } from "@/components/SearchBar"
-import { ProfileFilter } from "@/components/ProfileFilter"
-import { QuickLinks } from "@/components/QuickLinks"
-import { Button } from "@/components/ui/button"
+import { createClient } from "@/lib/supabase/server"
+import type { KentChapter } from "@/lib/supabase/types"
 
-export default function HomePage() {
+export default async function HomePage() {
+  const supabase = await createClient()
+  const { data: chapters } = await supabase
+    .from("kent_chapters")
+    .select("*")
+    .order("sort_order")
+
   return (
-    <div className="max-w-4xl mx-auto">
-      {/* Hero Section */}
-      <div className="text-center py-12 md:py-20">
-        <h1 className="text-4xl md:text-5xl font-bold text-primary mb-4">
-          HomeoGuide
+    <div>
+      {/* Hero */}
+      <section className="text-center py-12">
+        <h1 className="text-4xl md:text-5xl font-bold mb-4">
+          <span className="text-primary">HomeoGuide</span>
         </h1>
-        <p className="text-lg md:text-xl text-muted-foreground mb-8">
-          Votre guide homéopathique complet
+        <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+          Repertoire homeopathique de Kent complet. 68 000+ rubriques, 623 remedes, 619 000+ associations.
         </p>
-
-        {/* CTA principal */}
-        <div className="mb-8">
-          <Link href="/trouver-remede">
-            <Button size="lg" className="text-lg px-8 py-6">
-              Trouver un remède pour mes symptômes
-            </Button>
+        <div className="flex justify-center gap-4">
+          <Link
+            href="/trouver-remede"
+            className="px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors"
+          >
+            Trouver un remede
+          </Link>
+          <Link
+            href="/repertoire"
+            className="px-6 py-3 border rounded-lg font-medium hover:bg-accent transition-colors"
+          >
+            Parcourir le repertoire
           </Link>
         </div>
+      </section>
 
-        {/* Search Section */}
-        <div className="max-w-2xl mx-auto space-y-4">
-          <p className="text-sm text-muted-foreground">Ou recherchez directement :</p>
-          <SearchBar />
-          <ProfileFilter />
+      {/* Chapters grid */}
+      <section className="py-8">
+        <h2 className="text-2xl font-bold mb-6 text-center">Chapitres du repertoire</h2>
+        <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+          {(chapters as KentChapter[])?.map((ch) => (
+            <Link
+              key={ch.id}
+              href={`/repertoire/${ch.id}`}
+              className="flex flex-col items-center p-3 rounded-lg border hover:border-primary hover:shadow-sm transition-all group"
+            >
+              <span className="text-2xl mb-1">{ch.icon}</span>
+              <span className="text-xs font-medium text-center group-hover:text-primary">{ch.name_fr}</span>
+            </Link>
+          ))}
         </div>
-      </div>
+      </section>
 
-      {/* Quick Links */}
-      <QuickLinks />
-
-      {/* Features Section */}
-      <div className="grid md:grid-cols-3 gap-6 py-12">
-        <FeatureCard
-          title="Recherche Complète"
-          description="Recherchez par symptôme ou par remède homéopathique"
-          icon="search"
-        />
-        <FeatureCard
-          title="Profils Adaptés"
-          description="Posologies adaptées pour adultes, nourrissons, femmes enceintes et animaux"
-          icon="users"
-        />
-        <FeatureCard
-          title="Navigation Intuitive"
-          description="Parcourez les remèdes par ordre alphabétique"
-          icon="list"
-        />
-      </div>
-    </div>
-  )
-}
-
-function FeatureCard({
-  title,
-  description,
-  icon
-}: {
-  title: string
-  description: string
-  icon: string
-}) {
-  const icons: Record<string, React.ReactNode> = {
-    search: (
-      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-      </svg>
-    ),
-    users: (
-      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-      </svg>
-    ),
-    list: (
-      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-      </svg>
-    ),
-  }
-
-  return (
-    <div className="bg-card rounded-lg border p-6 text-center hover:shadow-lg transition-shadow">
-      <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary mb-4">
-        {icons[icon]}
-      </div>
-      <h3 className="text-lg font-semibold mb-2">{title}</h3>
-      <p className="text-muted-foreground text-sm">{description}</p>
+      {/* Quick actions */}
+      <section className="py-8 grid md:grid-cols-3 gap-6">
+        <Link href="/trouver-remede" className="p-6 border rounded-lg hover:border-primary transition-colors">
+          <h3 className="font-bold text-lg mb-2">Repertorisation</h3>
+          <p className="text-sm text-muted-foreground">
+            Selectionnez des symptomes et trouvez le remede le plus adapte grace a l&apos;algorithme de repertorisation.
+          </p>
+        </Link>
+        <Link href="/remedes" className="p-6 border rounded-lg hover:border-primary transition-colors">
+          <h3 className="font-bold text-lg mb-2">623 Remedes</h3>
+          <p className="text-sm text-muted-foreground">
+            Parcourez la liste complete des remedes homeopathiques avec leurs rubriques associees.
+          </p>
+        </Link>
+        <Link href="/recherche" className="p-6 border rounded-lg hover:border-primary transition-colors">
+          <h3 className="font-bold text-lg mb-2">Recherche</h3>
+          <p className="text-sm text-muted-foreground">
+            Recherchez directement un symptome ou un remede dans la base de donnees complete.
+          </p>
+        </Link>
+      </section>
     </div>
   )
 }

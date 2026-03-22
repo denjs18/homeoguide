@@ -2,772 +2,279 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { SYMPTOM_CATEGORIES, MODALITES_COMMUNES, searchSymptoms } from "@/lib/symptoms-data"
-import type { SymptomCategory, SubCategory, Symptom, Modalite } from "@/lib/symptoms-data"
 import { createClient } from "@/lib/supabase/client"
-import { cn } from "@/lib/utils"
+import { GradeBadge } from "@/components/GradeBadge"
+import type { KentChapter, RepertorizationResult } from "@/lib/supabase/types"
 
-interface SelectedSymptom {
-  symptom: Symptom;
-  modalites: Modalite[];
-}
-
-interface RemedyResult {
-  id: string;
-  nom: string;
-  nom_complet: string;
-  matchedKeywords: string[]; // Les mots-clés qui ont matché
-  matchedUserSymptoms: string[]; // Les symptômes utilisateur correspondants
-  totalScore: number;
-}
+type Step = "chapter" | "browse" | "results"
 
 export default function TrouverRemedePage() {
-  // États de navigation
-  const [step, setStep] = useState<'category' | 'subcategory' | 'symptoms' | 'modalites' | 'results'>('category')
-  const [selectedCategory, setSelectedCategory] = useState<SymptomCategory | null>(null)
-  const [selectedSubCategory, setSelectedSubCategory] = useState<SubCategory | null>(null)
-  const [selectedSymptoms, setSelectedSymptoms] = useState<SelectedSymptom[]>([])
-  const [currentSymptom, setCurrentSymptom] = useState<Symptom | null>(null)
-  const [currentModalites, setCurrentModalites] = useState<Modalite[]>([])
-
-  // Recherche
-  const [searchQuery, setSearchQuery] = useState("")
-  const [searchResults, setSearchResults] = useState<Symptom[]>([])
-
-  // Résultats
-  const [remedyResults, setRemedyResults] = useState<RemedyResult[]>([])
+  const [step, setStep] = useState<Step>("chapter")
+  const [chapters, setChapters] = useState<KentChapter[]>([])
+  const [selectedChapter, setSelectedChapter] = useState<KentChapter | null>(null)
+  const [rubrics, setRubrics] = useState<any[]>([])
+  const [breadcrumb, setBreadcrumb] = useState<{ id: number; label: string }[]>([])
+  const [selectedRubrics, setSelectedRubrics] = useState<{ id: number; path: string }[]>([])
+  const [results, setResults] = useState<RepertorizationResult[]>([])
   const [loading, setLoading] = useState(false)
 
-  // Recherche de symptômes
+  const supabase = createClient()
+
   useEffect(() => {
-    if (searchQuery.length >= 2) {
-      const results = searchSymptoms(searchQuery)
-      setSearchResults(results.slice(0, 10))
-    } else {
-      setSearchResults([])
+    async function load() {
+      const { data } = await supabase.from("kent_chapters").select("*").order("sort_order")
+      setChapters(data || [])
     }
-  }, [searchQuery])
+    load()
+  }, [])
 
-  // Sélectionner une catégorie
-  const handleCategorySelect = (category: SymptomCategory) => {
-    setSelectedCategory(category)
-    setStep('subcategory')
-  }
-
-  // Sélectionner une sous-catégorie
-  const handleSubCategorySelect = (subCategory: SubCategory) => {
-    setSelectedSubCategory(subCategory)
-    setStep('symptoms')
-  }
-
-  // Sélectionner un symptôme
-  const handleSymptomSelect = (symptom: Symptom) => {
-    setCurrentSymptom(symptom)
-    setCurrentModalites([])
-    setStep('modalites')
-  }
-
-  // Sélectionner un symptôme depuis la recherche
-  const handleSearchSymptomSelect = (symptom: Symptom) => {
-    setCurrentSymptom(symptom)
-    setCurrentModalites([])
-    setSearchQuery("")
-    setSearchResults([])
-    setStep('modalites')
-  }
-
-  // Toggle modalité
-  const toggleModalite = (modalite: Modalite) => {
-    setCurrentModalites(prev => {
-      const exists = prev.find(m => m.id === modalite.id)
-      if (exists) {
-        return prev.filter(m => m.id !== modalite.id)
-      } else {
-        return [...prev, modalite]
-      }
-    })
-  }
-
-  // Confirmer le symptôme avec ses modalités
-  const confirmSymptom = () => {
-    if (currentSymptom) {
-      setSelectedSymptoms(prev => [...prev, {
-        symptom: currentSymptom,
-        modalites: currentModalites
-      }])
-      setCurrentSymptom(null)
-      setCurrentModalites([])
-      setStep('category')
-    }
-  }
-
-  // Supprimer un symptôme sélectionné
-  const removeSelectedSymptom = (index: number) => {
-    setSelectedSymptoms(prev => prev.filter((_, i) => i !== index))
-  }
-
-  // Rechercher les remèdes
-  const findRemedies = async () => {
-    if (selectedSymptoms.length === 0) return
-
+  async function loadRubrics(parentId: number | null, chapterId: number) {
     setLoading(true)
-    setStep('results')
+    let query = supabase
+      .from("kent_rubrics")
+      .select("id, symptom, full_path, depth")
+      .eq("chapter_id", chapterId)
+      .order("symptom")
+      .limit(500)
 
-    try {
-      const supabase = createClient()
-
-      // Construire une map des mots-clés vers les symptômes utilisateur
-      const keywordToUserSymptom = new Map<string, string[]>()
-
-      selectedSymptoms.forEach(ss => {
-        const userSymptomDesc = ss.symptom.nom +
-          (ss.modalites.length > 0 ? ' (' + ss.modalites.map(m => m.nom).join(', ') + ')' : '')
-
-        ss.symptom.keywords.forEach(k => {
-          const key = k.toLowerCase()
-          const existing = keywordToUserSymptom.get(key) || []
-          if (!existing.includes(userSymptomDesc)) {
-            existing.push(userSymptomDesc)
-          }
-          keywordToUserSymptom.set(key, existing)
-        })
-
-        ss.modalites.forEach(m => {
-          m.keywords.forEach(k => {
-            const key = k.toLowerCase()
-            const existing = keywordToUserSymptom.get(key) || []
-            if (!existing.includes(userSymptomDesc)) {
-              existing.push(userSymptomDesc)
-            }
-            keywordToUserSymptom.set(key, existing)
-          })
-        })
-      })
-
-      // Collecter tous les mots-clés
-      const allKeywords = Array.from(keywordToUserSymptom.keys())
-      console.log('Keywords recherchés:', allKeywords)
-
-      // Rechercher les symptômes en base - plusieurs stratégies en parallèle
-      const searchTerms = allKeywords.slice(0, 15)
-      const symptomeData: { id: string; nom: string; matchedKeyword: string }[] = []
-
-      // Recherche dans le nom des symptômes
-      for (const term of searchTerms) {
-        if (term.length < 3) continue
-
-        const { data: nomData, error } = await supabase
-          .from('symptomes')
-          .select('id, nom')
-          .ilike('nom', `%${term}%`)
-          .limit(30)
-
-        if (error) {
-          console.error('Erreur recherche symptôme:', error)
-          continue
-        }
-
-        if (nomData && nomData.length > 0) {
-          console.log(`Trouvé ${nomData.length} symptômes pour "${term}"`)
-          nomData.forEach(d => {
-            if (!symptomeData.find(s => s.id === d.id)) {
-              symptomeData.push({ ...d, matchedKeyword: term })
-            }
-          })
-        }
-      }
-
-      console.log('Total symptômes trouvés:', symptomeData.length)
-
-      if (symptomeData.length === 0) {
-        console.log('Aucun symptôme trouvé, résultats vides')
-        setRemedyResults([])
-        setLoading(false)
-        return
-      }
-
-      // Dédupliquer par ID
-      const uniqueSymptomeIds = Array.from(new Set(symptomeData.map(s => s.id)))
-      console.log('IDs uniques:', uniqueSymptomeIds.slice(0, 5))
-
-      // Trouver les remèdes associés
-      const { data: associations, error: assocError } = await supabase
-        .from('symptomes_remedes')
-        .select(`
-          remede_id,
-          symptome_id,
-          grade,
-          remedes (id, nom, nom_complet)
-        `)
-        .in('symptome_id', uniqueSymptomeIds.slice(0, 100))
-        .order('grade', { ascending: false })
-        .limit(500)
-
-      if (assocError) {
-        console.error('Erreur associations:', assocError)
-        setRemedyResults([])
-        setLoading(false)
-        return
-      }
-
-      console.log('Associations trouvées:', associations?.length || 0)
-
-      if (!associations || associations.length === 0) {
-        setRemedyResults([])
-        setLoading(false)
-        return
-      }
-
-      // Créer une map symptome_id -> infos
-      const symptomeInfoMap = new Map<string, { nom: string; keywords: string[] }>()
-      symptomeData.forEach(s => {
-        const existing = symptomeInfoMap.get(s.id)
-        if (existing) {
-          if (!existing.keywords.includes(s.matchedKeyword)) {
-            existing.keywords.push(s.matchedKeyword)
-          }
-        } else {
-          symptomeInfoMap.set(s.id, { nom: s.nom, keywords: [s.matchedKeyword] })
-        }
-      })
-
-      // Agréger par remède
-      const remedyMap = new Map<string, RemedyResult & { highGradeCount: number }>()
-
-      for (const assoc of associations as any[]) {
-        if (!assoc.remedes) continue
-
-        const symptomeInfo = symptomeInfoMap.get(assoc.symptome_id)
-        const matchedKeywords = symptomeInfo?.keywords || []
-
-        // Trouver les symptômes utilisateur correspondants
-        const userSymptoms: string[] = []
-        matchedKeywords.forEach(k => {
-          const userSyms = keywordToUserSymptom.get(k.toLowerCase())
-          if (userSyms) {
-            userSyms.forEach(us => {
-              if (!userSymptoms.includes(us)) {
-                userSymptoms.push(us)
-              }
-            })
-          }
-        })
-
-        // Si pas de match direct, utiliser le nom du symptôme sélectionné
-        if (userSymptoms.length === 0) {
-          selectedSymptoms.forEach(ss => {
-            if (!userSymptoms.includes(ss.symptom.nom)) {
-              userSymptoms.push(ss.symptom.nom)
-            }
-          })
-        }
-
-        const existing = remedyMap.get(assoc.remede_id)
-        if (existing) {
-          existing.totalScore += assoc.grade || 1
-          if (assoc.grade >= 3) existing.highGradeCount++
-          matchedKeywords.forEach(k => {
-            if (!existing.matchedKeywords.includes(k)) {
-              existing.matchedKeywords.push(k)
-            }
-          })
-          userSymptoms.forEach(us => {
-            if (!existing.matchedUserSymptoms.includes(us)) {
-              existing.matchedUserSymptoms.push(us)
-            }
-          })
-        } else {
-          remedyMap.set(assoc.remede_id, {
-            id: assoc.remedes.id,
-            nom: assoc.remedes.nom,
-            nom_complet: assoc.remedes.nom_complet,
-            matchedKeywords: matchedKeywords,
-            matchedUserSymptoms: userSymptoms,
-            totalScore: assoc.grade || 1,
-            highGradeCount: assoc.grade >= 3 ? 1 : 0
-          })
-        }
-      }
-
-      console.log('Remèdes uniques:', remedyMap.size)
-
-      // Trier par score
-      let results = Array.from(remedyMap.values())
-      results.sort((a, b) => {
-        if (b.totalScore !== a.totalScore) return b.totalScore - a.totalScore
-        if (b.highGradeCount !== a.highGradeCount) return b.highGradeCount - a.highGradeCount
-        return b.matchedUserSymptoms.length - a.matchedUserSymptoms.length
-      })
-
-      // Diversifier les résultats
-      const diversifiedResults: RemedyResult[] = []
-      const letterCounts = new Map<string, number>()
-      const maxPerLetter = 2
-
-      for (const remedy of results) {
-        const firstLetter = remedy.nom.charAt(0).toUpperCase()
-        const count = letterCounts.get(firstLetter) || 0
-
-        if (count < maxPerLetter) {
-          diversifiedResults.push(remedy)
-          letterCounts.set(firstLetter, count + 1)
-        }
-
-        if (diversifiedResults.length >= 10) break
-      }
-
-      // Compléter si nécessaire
-      if (diversifiedResults.length < 10) {
-        for (const remedy of results) {
-          if (!diversifiedResults.find(r => r.id === remedy.id)) {
-            diversifiedResults.push(remedy)
-            if (diversifiedResults.length >= 10) break
-          }
-        }
-      }
-
-      console.log('Résultats finaux:', diversifiedResults.length)
-      setRemedyResults(diversifiedResults)
-    } catch (error) {
-      console.error('Error finding remedies:', error)
-      setRemedyResults([])
+    if (parentId === null) {
+      query = query.is("parent_id", null)
+    } else {
+      query = query.eq("parent_id", parentId)
     }
 
+    const { data } = await query
+    setRubrics(data || [])
     setLoading(false)
   }
 
-  // Recommencer
-  const reset = () => {
-    setStep('category')
-    setSelectedCategory(null)
-    setSelectedSubCategory(null)
-    setSelectedSymptoms([])
-    setCurrentSymptom(null)
-    setCurrentModalites([])
-    setRemedyResults([])
-    setSearchQuery("")
+  function selectChapter(chapter: KentChapter) {
+    setSelectedChapter(chapter)
+    setBreadcrumb([])
+    loadRubrics(null, chapter.id)
+    setStep("browse")
   }
 
-  // Retour en arrière
-  const goBack = () => {
-    switch (step) {
-      case 'subcategory':
-        setStep('category')
-        setSelectedCategory(null)
-        break
-      case 'symptoms':
-        setStep('subcategory')
-        setSelectedSubCategory(null)
-        break
-      case 'modalites':
-        if (selectedSubCategory) {
-          setStep('symptoms')
-        } else {
-          setStep('category')
-        }
-        setCurrentSymptom(null)
-        break
-      case 'results':
-        setStep('category')
-        break
+  function navigateToRubric(rubric: any) {
+    setBreadcrumb([...breadcrumb, { id: rubric.id, label: rubric.symptom }])
+    loadRubrics(rubric.id, selectedChapter!.id)
+  }
+
+  function navigateBreadcrumb(index: number) {
+    if (index < 0) {
+      setBreadcrumb([])
+      loadRubrics(null, selectedChapter!.id)
+    } else {
+      const newBreadcrumb = breadcrumb.slice(0, index + 1)
+      setBreadcrumb(newBreadcrumb)
+      loadRubrics(newBreadcrumb[newBreadcrumb.length - 1].id, selectedChapter!.id)
     }
+  }
+
+  function toggleRubric(rubric: any) {
+    const exists = selectedRubrics.find(r => r.id === rubric.id)
+    if (exists) {
+      setSelectedRubrics(selectedRubrics.filter(r => r.id !== rubric.id))
+    } else {
+      setSelectedRubrics([...selectedRubrics, { id: rubric.id, path: rubric.full_path }])
+    }
+  }
+
+  async function runRepertorization() {
+    if (selectedRubrics.length === 0) return
+    setLoading(true)
+    setStep("results")
+
+    const { data, error } = await supabase.rpc("repertorize", {
+      rubric_ids: selectedRubrics.map(r => r.id),
+      max_results: 30,
+    })
+
+    if (error) console.error("Repertorization error:", error)
+    setResults(data || [])
+    setLoading(false)
+  }
+
+  function reset() {
+    setStep("chapter")
+    setSelectedChapter(null)
+    setSelectedRubrics([])
+    setResults([])
+    setBreadcrumb([])
+    setRubrics([])
   }
 
   return (
     <div className="max-w-4xl mx-auto">
-      {/* En-tête */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Trouver un remède</h1>
-        <p className="text-muted-foreground">
-          Sélectionnez vos symptômes pour trouver les remèdes homéopathiques adaptés
-        </p>
-      </div>
+      <h1 className="text-3xl font-bold mb-2">Trouver un remede</h1>
+      <p className="text-muted-foreground mb-6">
+        Selectionnez des rubriques du repertoire Kent, puis lancez la repertorisation.
+      </p>
 
-      {/* Barre de recherche rapide */}
-      {step !== 'results' && (
-        <div className="mb-6">
-          <div className="relative">
-            <Input
-              type="text"
-              placeholder="Rechercher un symptôme (ex: mal de tête, diarrhée, anxiété...)"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full"
-            />
-            {searchResults.length > 0 && (
-              <div className="absolute top-full left-0 right-0 bg-background border rounded-md shadow-lg z-50 mt-1 max-h-64 overflow-auto">
-                {searchResults.map((symptom) => (
-                  <button
-                    key={symptom.id}
-                    onClick={() => handleSearchSymptomSelect(symptom)}
-                    className="w-full text-left px-4 py-2 hover:bg-muted transition-colors"
-                  >
-                    <div className="font-medium">{symptom.nom}</div>
-                    {symptom.description && (
-                      <div className="text-sm text-muted-foreground">{symptom.description}</div>
-                    )}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Symptômes sélectionnés */}
-      {selectedSymptoms.length > 0 && step !== 'results' && (
-        <Card className="mb-6 bg-primary/5">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Vos symptômes ({selectedSymptoms.length})</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2 mb-4">
-              {selectedSymptoms.map((ss, index) => (
-                <Badge
-                  key={index}
-                  variant="secondary"
-                  className="text-sm py-1.5 px-3"
-                >
-                  {ss.symptom.nom}
-                  {ss.modalites.length > 0 && (
-                    <span className="ml-1 text-muted-foreground">
-                      ({ss.modalites.length} précision{ss.modalites.length > 1 ? 's' : ''})
-                    </span>
-                  )}
-                  <button
-                    onClick={() => removeSelectedSymptom(index)}
-                    className="ml-2 text-muted-foreground hover:text-destructive"
-                  >
-                    ×
-                  </button>
-                </Badge>
-              ))}
+      {/* Selected rubrics panel */}
+      {selectedRubrics.length > 0 && (
+        <div className="mb-6 p-4 border rounded-lg bg-primary/5 sticky top-20 z-10">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-semibold">Rubriques selectionnees ({selectedRubrics.length})</h3>
+            <div className="flex gap-2">
+              <button onClick={() => setSelectedRubrics([])} className="text-xs text-muted-foreground hover:text-destructive">
+                Tout effacer
+              </button>
+              <button
+                onClick={runRepertorization}
+                className="px-4 py-1.5 bg-primary text-primary-foreground rounded-md text-sm hover:bg-primary/90 font-medium"
+              >
+                Repertoriser
+              </button>
             </div>
-            <Button onClick={findRemedies} className="w-full sm:w-auto">
-              Trouver les remèdes ({selectedSymptoms.length} symptôme{selectedSymptoms.length > 1 ? 's' : ''})
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Navigation par fil d'Ariane */}
-      {step !== 'category' && step !== 'results' && (
-        <div className="flex items-center gap-2 mb-4 text-sm">
-          <button onClick={reset} className="text-primary hover:underline">
-            Accueil
-          </button>
-          {selectedCategory && (
-            <>
-              <span className="text-muted-foreground">/</span>
-              <button
-                onClick={() => { setStep('subcategory'); setSelectedSubCategory(null); }}
-                className="text-primary hover:underline"
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {selectedRubrics.map((r) => (
+              <span
+                key={r.id}
+                className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10 text-sm cursor-pointer hover:bg-destructive/10"
+                onClick={() => toggleRubric(r)}
+                title="Cliquer pour retirer"
               >
-                {selectedCategory.nom}
-              </button>
-            </>
-          )}
-          {selectedSubCategory && (
-            <>
-              <span className="text-muted-foreground">/</span>
-              <button
-                onClick={() => setStep('symptoms')}
-                className="text-primary hover:underline"
-              >
-                {selectedSubCategory.nom}
-              </button>
-            </>
-          )}
-          {currentSymptom && (
-            <>
-              <span className="text-muted-foreground">/</span>
-              <span>{currentSymptom.nom}</span>
-            </>
-          )}
-        </div>
-      )}
-
-      {/* Étape 1: Sélection de catégorie */}
-      {step === 'category' && (
-        <div>
-          <h2 className="text-xl font-semibold mb-4">Où se situe le problème ?</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-            {SYMPTOM_CATEGORIES.map((category) => (
-              <button
-                key={category.id}
-                onClick={() => handleCategorySelect(category)}
-                className="p-4 bg-card border rounded-lg hover:border-primary hover:shadow-md transition-all text-left"
-              >
-                <div className="text-2xl mb-2">{category.icone}</div>
-                <div className="font-medium">{category.nom}</div>
-                <div className="text-xs text-muted-foreground mt-1">{category.description}</div>
-              </button>
+                {r.path}
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </span>
             ))}
           </div>
         </div>
       )}
 
-      {/* Étape 2: Sélection de sous-catégorie */}
-      {step === 'subcategory' && selectedCategory && (
-        <div>
-          <button onClick={goBack} className="mb-4 text-sm text-muted-foreground hover:text-foreground">
-            ← Retour
-          </button>
-          <h2 className="text-xl font-semibold mb-4">
-            {selectedCategory.icone} {selectedCategory.nom} - Quel type de problème ?
-          </h2>
-          <div className="grid md:grid-cols-2 gap-3">
-            {selectedCategory.sousCategories.map((subCat) => (
-              <button
-                key={subCat.id}
-                onClick={() => handleSubCategorySelect(subCat)}
-                className="p-4 bg-card border rounded-lg hover:border-primary hover:shadow-md transition-all text-left"
-              >
-                <div className="font-medium">{subCat.nom}</div>
-                <div className="text-sm text-muted-foreground mt-1">
-                  {subCat.symptomes.length} symptôme{subCat.symptomes.length > 1 ? 's' : ''}
-                </div>
-              </button>
-            ))}
-          </div>
+      {/* Step: Chapter selection */}
+      {step === "chapter" && (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+          {chapters.map((ch) => (
+            <button
+              key={ch.id}
+              onClick={() => selectChapter(ch)}
+              className="flex flex-col items-center p-4 rounded-lg border hover:border-primary hover:shadow-md transition-all"
+            >
+              <span className="text-2xl mb-1">{ch.icon}</span>
+              <span className="font-medium text-sm text-center">{ch.name_fr}</span>
+            </button>
+          ))}
         </div>
       )}
 
-      {/* Étape 3: Sélection de symptômes */}
-      {step === 'symptoms' && selectedSubCategory && (
+      {/* Step: Browse rubrics */}
+      {step === "browse" && selectedChapter && (
         <div>
-          <button onClick={goBack} className="mb-4 text-sm text-muted-foreground hover:text-foreground">
-            ← Retour
-          </button>
-          <h2 className="text-xl font-semibold mb-4">
-            Sélectionnez votre symptôme
-          </h2>
-          <div className="grid md:grid-cols-2 gap-3">
-            {selectedSubCategory.symptomes.map((symptom) => (
-              <button
-                key={symptom.id}
-                onClick={() => handleSymptomSelect(symptom)}
-                className="p-4 bg-card border rounded-lg hover:border-primary hover:shadow-md transition-all text-left"
-              >
-                <div className="font-medium">{symptom.nom}</div>
-                {symptom.description && (
-                  <div className="text-sm text-muted-foreground mt-1">{symptom.description}</div>
+          <nav className="flex items-center gap-1 text-sm mb-4 flex-wrap">
+            <button onClick={() => { setStep("chapter") }} className="text-muted-foreground hover:text-primary">
+              Chapitres
+            </button>
+            <span className="mx-1 text-muted-foreground">/</span>
+            <button onClick={() => navigateBreadcrumb(-1)} className="text-muted-foreground hover:text-primary">
+              {selectedChapter.icon} {selectedChapter.name_fr}
+            </button>
+            {breadcrumb.map((item, i) => (
+              <span key={item.id} className="flex items-center">
+                <span className="mx-1 text-muted-foreground">/</span>
+                {i === breadcrumb.length - 1 ? (
+                  <span className="font-medium">{item.label}</span>
+                ) : (
+                  <button onClick={() => navigateBreadcrumb(i)} className="text-muted-foreground hover:text-primary">
+                    {item.label}
+                  </button>
                 )}
-              </button>
+              </span>
             ))}
-          </div>
-        </div>
-      )}
-
-      {/* Étape 4: Modalités (optionnel) */}
-      {step === 'modalites' && currentSymptom && (
-        <div>
-          <button onClick={goBack} className="mb-4 text-sm text-muted-foreground hover:text-foreground">
-            ← Retour
-          </button>
-          <h2 className="text-xl font-semibold mb-2">
-            {currentSymptom.nom}
-          </h2>
-          <p className="text-muted-foreground mb-6">
-            Précisez les circonstances (optionnel mais recommandé pour un résultat plus précis)
-          </p>
-
-          <div className="space-y-6">
-            {/* Aggravations */}
-            <div>
-              <h3 className="font-medium mb-3">Aggravé par :</h3>
-              <div className="flex flex-wrap gap-2">
-                {MODALITES_COMMUNES.filter(m => m.type === 'aggravation').map((modalite) => (
-                  <button
-                    key={modalite.id}
-                    onClick={() => toggleModalite(modalite)}
-                    className={cn(
-                      "px-3 py-1.5 rounded-full text-sm border transition-colors",
-                      currentModalites.find(m => m.id === modalite.id)
-                        ? "bg-red-100 border-red-300 text-red-800"
-                        : "bg-muted hover:bg-muted/80"
-                    )}
-                  >
-                    {modalite.nom.replace('Aggravé ', '').replace('par ', '').replace('au ', '').replace('en ', '')}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Améliorations */}
-            <div>
-              <h3 className="font-medium mb-3">Amélioré par :</h3>
-              <div className="flex flex-wrap gap-2">
-                {MODALITES_COMMUNES.filter(m => m.type === 'amelioration').map((modalite) => (
-                  <button
-                    key={modalite.id}
-                    onClick={() => toggleModalite(modalite)}
-                    className={cn(
-                      "px-3 py-1.5 rounded-full text-sm border transition-colors",
-                      currentModalites.find(m => m.id === modalite.id)
-                        ? "bg-green-100 border-green-300 text-green-800"
-                        : "bg-muted hover:bg-muted/80"
-                    )}
-                  >
-                    {modalite.nom.replace('Amélioré ', '').replace('par ', '').replace('au ', '').replace('en ', '')}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Latéralité */}
-            <div>
-              <h3 className="font-medium mb-3">Localisation :</h3>
-              <div className="flex flex-wrap gap-2">
-                {MODALITES_COMMUNES.filter(m => m.type === 'caracteristique').map((modalite) => (
-                  <button
-                    key={modalite.id}
-                    onClick={() => toggleModalite(modalite)}
-                    className={cn(
-                      "px-3 py-1.5 rounded-full text-sm border transition-colors",
-                      currentModalites.find(m => m.id === modalite.id)
-                        ? "bg-blue-100 border-blue-300 text-blue-800"
-                        : "bg-muted hover:bg-muted/80"
-                    )}
-                  >
-                    {modalite.nom}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-8 flex gap-3">
-            <Button onClick={confirmSymptom} className="flex-1">
-              Ajouter ce symptôme
-              {currentModalites.length > 0 && ` (${currentModalites.length} précision${currentModalites.length > 1 ? 's' : ''})`}
-            </Button>
-            <Button variant="outline" onClick={goBack}>
-              Annuler
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* Étape 5: Résultats */}
-      {step === 'results' && (
-        <div>
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold">Remèdes recommandés</h2>
-            <Button variant="outline" onClick={reset}>
-              Nouvelle recherche
-            </Button>
-          </div>
-
-          {/* Récapitulatif des symptômes */}
-          <Card className="mb-6 bg-muted/50">
-            <CardContent className="pt-4">
-              <div className="text-sm font-medium mb-2">Symptômes recherchés :</div>
-              <div className="flex flex-wrap gap-2">
-                {selectedSymptoms.map((ss, index) => (
-                  <Badge key={index} variant="outline">
-                    {ss.symptom.nom}
-                  </Badge>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          </nav>
 
           {loading ? (
-            <div className="text-center py-12 text-muted-foreground">
-              Recherche des remèdes en cours...
-            </div>
-          ) : remedyResults.length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <p className="text-muted-foreground mb-4">
-                  Aucun remède trouvé pour ces symptômes.
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Essayez avec d'autres symptômes ou consultez un homéopathe professionnel.
-                </p>
-              </CardContent>
-            </Card>
+            <p className="text-center py-8 text-muted-foreground">Chargement...</p>
           ) : (
-            <div className="space-y-4">
-              {remedyResults.map((remedy, index) => (
-                <Card key={remedy.id} className={cn(
-                  index === 0 && 'border-primary border-2',
-                  index === 0 && 'bg-primary/5'
-                )}>
-                  <CardContent className="pt-6">
-                    <div className="flex items-start justify-between mb-3">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          {index === 0 && (
-                            <Badge className="bg-primary">Meilleur choix</Badge>
-                          )}
-                          <Link
-                            href={`/remedes/${remedy.id}`}
-                            className="text-xl font-semibold hover:text-primary"
-                          >
-                            {remedy.nom}
-                          </Link>
-                        </div>
-                        {remedy.nom_complet && remedy.nom_complet !== remedy.nom && (
-                          <p className="text-sm text-muted-foreground italic">
-                            {remedy.nom_complet}
-                          </p>
-                        )}
-                      </div>
-                      <Badge variant="outline" className="shrink-0">
-                        {remedy.matchedUserSymptoms.length} symptôme{remedy.matchedUserSymptoms.length > 1 ? 's' : ''}
-                      </Badge>
-                    </div>
+            <div className="space-y-1 border rounded-lg divide-y">
+              {rubrics.map((rubric) => {
+                const isSelected = selectedRubrics.some(r => r.id === rubric.id)
+                const lastPart = rubric.full_path.split(" > ").pop()
+                return (
+                  <div key={rubric.id} className="flex items-center gap-2 p-3 hover:bg-accent transition-colors">
+                    <button
+                      onClick={() => toggleRubric(rubric)}
+                      className={`shrink-0 w-5 h-5 rounded border flex items-center justify-center transition-colors ${
+                        isSelected ? "bg-primary border-primary text-primary-foreground" : "border-gray-300 hover:border-primary"
+                      }`}
+                    >
+                      {isSelected && (
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                    </button>
+                    <button
+                      onClick={() => navigateToRubric(rubric)}
+                      className="flex-1 text-left hover:text-primary font-medium"
+                    >
+                      {lastPart}
+                    </button>
+                    <svg className="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                )
+              })}
+            </div>
+          )}
 
-                    {/* Symptômes correspondants */}
-                    <div className="bg-muted/50 rounded-lg p-3 mb-4">
-                      <div className="text-sm font-medium mb-2 text-muted-foreground">
-                        Correspond à vos symptômes :
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {remedy.matchedUserSymptoms.map((symptom, i) => (
-                          <span
-                            key={i}
-                            className="inline-flex items-center px-2.5 py-1 rounded-md bg-background border text-sm"
-                          >
-                            <span className="text-green-600 mr-1.5">✓</span>
-                            {symptom}
-                          </span>
-                        ))}
-                        {remedy.matchedUserSymptoms.length === 0 && (
-                          <span className="text-sm text-muted-foreground">
-                            Correspondance générale basée sur vos recherches
-                          </span>
-                        )}
-                      </div>
-                    </div>
+          {!loading && rubrics.length === 0 && (
+            <p className="text-muted-foreground text-center py-8">Aucune sous-rubrique. Selectionnez la rubrique parente.</p>
+          )}
+        </div>
+      )}
 
-                    <Link href={`/remedes/${remedy.id}`}>
-                      <Button variant="outline" size="sm">
-                        Voir la fiche complète
-                      </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
+      {/* Step: Results */}
+      {step === "results" && (
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold">Resultats</h2>
+            <button onClick={() => setStep("browse")} className="text-sm text-primary hover:underline">
+              Modifier la selection
+            </button>
+          </div>
+
+          {loading ? (
+            <p className="text-center py-8 text-muted-foreground">Repertorisation en cours...</p>
+          ) : results.length === 0 ? (
+            <p className="text-center py-8 text-muted-foreground">Aucun remede trouve.</p>
+          ) : (
+            <div className="space-y-2">
+              {results.map((r, i) => (
+                <Link
+                  key={r.remedy_id}
+                  href={`/remedes/${r.remedy_id}`}
+                  className="flex items-center justify-between p-4 border rounded-lg hover:border-primary transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-lg font-bold text-muted-foreground w-8">{i + 1}.</span>
+                    <div>
+                      <span className="font-bold text-primary">{r.abbrev}</span>
+                      <span className="text-sm text-muted-foreground ml-2">{r.name_full}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 text-sm">
+                    <span className="text-muted-foreground">
+                      {r.rubric_count}/{selectedRubrics.length} rubriques
+                    </span>
+                    <span className="font-semibold">Score: {r.total_score}</span>
+                    <GradeBadge grade={r.max_grade} />
+                  </div>
+                </Link>
               ))}
             </div>
           )}
 
-          {/* Avertissement */}
-          <Card className="mt-8 bg-amber-50 border-amber-200">
-            <CardContent className="pt-4">
-              <p className="text-sm text-amber-800">
-                <strong>Avertissement :</strong> Ces recommandations sont données à titre informatif.
-                L'homéopathie ne remplace pas un avis médical. En cas de symptômes graves ou persistants,
-                consultez un professionnel de santé.
-              </p>
-            </CardContent>
-          </Card>
+          <div className="mt-6 text-center">
+            <button onClick={reset} className="px-4 py-2 border rounded-md hover:bg-accent">
+              Nouvelle recherche
+            </button>
+          </div>
         </div>
       )}
     </div>

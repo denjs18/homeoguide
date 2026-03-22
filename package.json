@@ -7,13 +7,16 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "seed": "npx tsx scripts/seed-database.ts"
+    "seed": "npx tsx scripts/seed-database.ts",
+    "parse-kent": "npx tsx scripts/parse-openhomeopath.ts",
+    "import-kent": "npx tsx scripts/import-kent.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.1.0",
     "@supabase/supabase-js": "^2.39.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
+    "dotenv": "^17.3.1",
     "lucide-react": "^0.344.0",
     "next": "^14.2.0",
     "pg": "^8.20.0",
