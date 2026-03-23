@@ -61,7 +61,7 @@ export default async function RubriquePage({ params }: { params: { id: string } 
     <div>
       {/* Breadcrumb */}
       <nav className="flex items-center text-sm text-muted-foreground mb-6 flex-wrap gap-1">
-        <Link href="/repertoire" className="hover:text-primary">Repertoire</Link>
+        <Link href="/repertoire" className="hover:text-primary">Répertoire</Link>
         <span className="mx-1">/</span>
         <Link href={`/repertoire/${chapter.id}`} className="hover:text-primary">
           {chapter.icon} {chapter.name_fr}
@@ -115,7 +115,7 @@ export default async function RubriquePage({ params }: { params: { id: string } 
       {remedyAssociations && remedyAssociations.length > 0 && (
         <section>
           <h2 className="text-lg font-semibold mb-3">
-            Remedes ({remedyAssociations.length})
+            Remèdes ({remedyAssociations.length})
           </h2>
           <div className="flex flex-wrap gap-2">
             {remedyAssociations.map((assoc: any) => {
@@ -145,7 +145,7 @@ export default async function RubriquePage({ params }: { params: { id: string } 
 
       {(!children || children.length === 0) && (!remedyAssociations || remedyAssociations.length === 0) && (
         <p className="text-muted-foreground text-center py-8">
-          Aucune donnee pour cette rubrique.
+          Aucune donnée pour cette rubrique.
         </p>
       )}
     </div>

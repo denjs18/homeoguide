@@ -3,8 +3,8 @@ import { createClient } from "@/lib/supabase/server"
 import type { KentChapter } from "@/lib/supabase/types"
 
 export const metadata = {
-  title: "Repertoire Kent - HomeoGuide",
-  description: "Parcourir le repertoire homeopathique de Kent par chapitre",
+  title: "Répertoire Kent - HomeoGuide",
+  description: "Parcourir le répertoire homéopathique de Kent par chapitre",
 }
 
 export default async function RepertoirePage() {
@@ -17,9 +17,9 @@ export default async function RepertoirePage() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-2">Repertoire de Kent</h1>
+      <h1 className="text-3xl font-bold mb-2">Répertoire de Kent</h1>
       <p className="text-muted-foreground mb-8">
-        68 000+ rubriques du repertoire homeopathique de Kent. Selectionnez un chapitre pour naviguer.
+        68 000+ rubriques du répertoire homéopathique de Kent. Sélectionnez un chapitre pour naviguer.
       </p>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">

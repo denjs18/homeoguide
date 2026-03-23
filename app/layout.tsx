@@ -7,9 +7,9 @@ import { Disclaimer } from "@/components/Disclaimer"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "HomeoGuide - Repertoire Kent",
-  description: "Repertoire homeopathique de Kent complet - 68 000+ rubriques, recherche et repertorisation",
-  keywords: ["homeopathie", "Kent", "repertoire", "remedes", "symptomes"],
+  title: "HomeoGuide - Répertoire Kent",
+  description: "Répertoire homéopathique de Kent complet - 68 000+ rubriques, recherche et répertorisation",
+  keywords: ["homéopathie", "Kent", "répertoire", "remèdes", "symptômes"],
 }
 
 export default function RootLayout({
@@ -18,8 +18,11 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="fr">
-      <body className={inter.className}>
+    <html lang="fr" translate="no">
+      <head>
+        <meta name="google" content="notranslate" />
+      </head>
+      <body className={`${inter.className} notranslate`}>
         <div className="min-h-screen flex flex-col">
           <Header />
           <main className="flex-1 container mx-auto px-4 py-6">

@@ -17,27 +17,27 @@ export default async function HomePage() {
           <span className="text-primary">HomeoGuide</span>
         </h1>
         <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-          Repertoire homeopathique de Kent complet. 68 000+ rubriques, 623 remedes, 619 000+ associations.
+          Répertoire homéopathique de Kent complet. 68 000+ rubriques, 623 remèdes, 619 000+ associations.
         </p>
         <div className="flex justify-center gap-4">
           <Link
             href="/trouver-remede"
             className="px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors"
           >
-            Trouver un remede
+            Trouver un remède
           </Link>
           <Link
             href="/repertoire"
             className="px-6 py-3 border rounded-lg font-medium hover:bg-accent transition-colors"
           >
-            Parcourir le repertoire
+            Parcourir le répertoire
           </Link>
         </div>
       </section>
 
       {/* Chapters grid */}
       <section className="py-8">
-        <h2 className="text-2xl font-bold mb-6 text-center">Chapitres du repertoire</h2>
+        <h2 className="text-2xl font-bold mb-6 text-center">Chapitres du répertoire</h2>
         <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
           {(chapters as KentChapter[])?.map((ch) => (
             <Link
@@ -55,21 +55,21 @@ export default async function HomePage() {
       {/* Quick actions */}
       <section className="py-8 grid md:grid-cols-3 gap-6">
         <Link href="/trouver-remede" className="p-6 border rounded-lg hover:border-primary transition-colors">
-          <h3 className="font-bold text-lg mb-2">Repertorisation</h3>
+          <h3 className="font-bold text-lg mb-2">Répertorisation</h3>
           <p className="text-sm text-muted-foreground">
-            Selectionnez des symptomes et trouvez le remede le plus adapte grace a l&apos;algorithme de repertorisation.
+            Sélectionnez des symptômes et trouvez le remède le plus adapté grâce à l&apos;algorithme de répertorisation.
           </p>
         </Link>
         <Link href="/remedes" className="p-6 border rounded-lg hover:border-primary transition-colors">
-          <h3 className="font-bold text-lg mb-2">623 Remedes</h3>
+          <h3 className="font-bold text-lg mb-2">623 Remèdes</h3>
           <p className="text-sm text-muted-foreground">
-            Parcourez la liste complete des remedes homeopathiques avec leurs rubriques associees.
+            Parcourez la liste complète des remèdes homéopathiques avec leurs rubriques associées.
           </p>
         </Link>
         <Link href="/recherche" className="p-6 border rounded-lg hover:border-primary transition-colors">
           <h3 className="font-bold text-lg mb-2">Recherche</h3>
           <p className="text-sm text-muted-foreground">
-            Recherchez directement un symptome ou un remede dans la base de donnees complete.
+            Recherchez directement un symptôme ou un remède dans la base de données complète.
           </p>
         </Link>
       </section>

@@ -42,7 +42,7 @@ export default async function RemedePage({ params }: { params: { id: string } })
   return (
     <div className="max-w-4xl mx-auto">
       <nav className="mb-6 text-sm text-muted-foreground">
-        <Link href="/remedes" className="hover:text-primary">Remedes</Link>
+        <Link href="/remedes" className="hover:text-primary">Remèdes</Link>
         <span className="mx-2">/</span>
         <span className="text-foreground">{remedy.abbrev}</span>
       </nav>
@@ -51,7 +51,7 @@ export default async function RemedePage({ params }: { params: { id: string } })
       <p className="text-lg text-muted-foreground italic mb-8">{remedy.name_full}</p>
 
       <h2 className="text-xl font-semibold mb-4">
-        Rubriques associees ({associations?.length || 0})
+        Rubriques associées ({associations?.length || 0})
       </h2>
 
       <div className="space-y-6">
@@ -83,7 +83,7 @@ export default async function RemedePage({ params }: { params: { id: string } })
       </div>
 
       {(!associations || associations.length === 0) && (
-        <p className="text-muted-foreground text-center py-8">Aucune rubrique associee.</p>
+        <p className="text-muted-foreground text-center py-8">Aucune rubrique associée.</p>
       )}
     </div>
   )

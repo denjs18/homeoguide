@@ -50,7 +50,7 @@ export default function RemediesPage() {
   }
 
   if (loading) {
-    return <div className="flex justify-center py-12 text-muted-foreground">Chargement des remedes...</div>
+    return <div className="flex justify-center py-12 text-muted-foreground">Chargement des remèdes...</div>
   }
 
   return (
@@ -60,12 +60,12 @@ export default function RemediesPage() {
       </aside>
 
       <div className="flex-1 min-w-0">
-        <h1 className="text-3xl font-bold mb-2">Remedes homeopathiques</h1>
-        <p className="text-muted-foreground mb-6">{remedes.length} remedes du repertoire de Kent</p>
+        <h1 className="text-3xl font-bold mb-2">Remèdes homéopathiques</h1>
+        <p className="text-muted-foreground mb-6">{remedes.length} remèdes du répertoire de Kent</p>
 
         <Input
           type="text"
-          placeholder="Filtrer les remedes..."
+          placeholder="Filtrer les remèdes..."
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
           className="max-w-md mb-6"

@@ -164,16 +164,16 @@ export default function TrouverRemedePage() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold mb-2">Trouver un remede</h1>
+      <h1 className="text-3xl font-bold mb-2">Trouver un remède</h1>
       <p className="text-muted-foreground mb-6">
-        Selectionnez des rubriques du repertoire Kent, puis lancez la repertorisation.
+        Sélectionnez des rubriques du répertoire Kent, puis lancez la répertorisation.
       </p>
 
       {/* Selected rubrics panel */}
       {selectedRubrics.length > 0 && (
         <div className="mb-6 p-4 border rounded-lg bg-primary/5 sticky top-20 z-10">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="font-semibold">Rubriques selectionnees ({selectedRubrics.length})</h3>
+            <h3 className="font-semibold">Rubriques sélectionnées ({selectedRubrics.length})</h3>
             <div className="flex gap-2">
               <button onClick={() => setSelectedRubrics([])} className="text-xs text-muted-foreground hover:text-destructive">
                 Tout effacer
@@ -182,7 +182,7 @@ export default function TrouverRemedePage() {
                 onClick={runRepertorization}
                 className="px-4 py-1.5 bg-primary text-primary-foreground rounded-md text-sm hover:bg-primary/90 font-medium"
               >
-                Repertoriser
+                Répertoriser
               </button>
             </div>
           </div>
@@ -282,7 +282,7 @@ export default function TrouverRemedePage() {
           )}
 
           {!loading && rubrics.length === 0 && (
-            <p className="text-muted-foreground text-center py-8">Aucune sous-rubrique. Selectionnez la rubrique parente.</p>
+            <p className="text-muted-foreground text-center py-8">Aucune sous-rubrique. Sélectionnez la rubrique parente.</p>
           )}
         </div>
       )}
@@ -298,9 +298,9 @@ export default function TrouverRemedePage() {
           </div>
 
           {loading ? (
-            <p className="text-center py-8 text-muted-foreground">Repertorisation en cours...</p>
+            <p className="text-center py-8 text-muted-foreground">Répertorisation en cours...</p>
           ) : results.length === 0 ? (
-            <p className="text-center py-8 text-muted-foreground">Aucun remede trouve.</p>
+            <p className="text-center py-8 text-muted-foreground">Aucun remède trouvé.</p>
           ) : (
             <div className="space-y-2">
               {results.map((r, i) => (

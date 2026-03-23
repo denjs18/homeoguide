@@ -85,7 +85,7 @@ export default function RecherchePage() {
       <form onSubmit={handleSearch} className="flex gap-2 mb-8">
         <Input
           type="text"
-          placeholder="Rechercher un symptome ou remede (en anglais)..."
+          placeholder="Rechercher un symptôme ou remède (en anglais)..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="flex-1"
@@ -101,7 +101,7 @@ export default function RecherchePage() {
 
       {searched && !loading && results.length === 0 && (
         <p className="text-center text-muted-foreground py-8">
-          Aucun resultat pour &quot;{query}&quot;
+          Aucun résultat pour &quot;{query}&quot;
         </p>
       )}
 
@@ -129,7 +129,7 @@ export default function RecherchePage() {
 
       {remedyResults.length > 0 && (
         <section>
-          <h2 className="text-xl font-semibold mb-3">Remedes ({remedyResults.length})</h2>
+          <h2 className="text-xl font-semibold mb-3">Remèdes ({remedyResults.length})</h2>
           <div className="space-y-1 border rounded-lg divide-y">
             {remedyResults.map((r) => (
               <Link

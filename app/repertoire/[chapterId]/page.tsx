@@ -27,7 +27,7 @@ export default async function ChapterPage({ params }: { params: { chapterId: str
     <div>
       {/* Breadcrumb */}
       <nav className="flex items-center text-sm text-muted-foreground mb-6">
-        <Link href="/repertoire" className="hover:text-primary">Repertoire</Link>
+        <Link href="/repertoire" className="hover:text-primary">Répertoire</Link>
         <span className="mx-2">/</span>
         <span className="text-foreground font-medium">{chapter.icon} {chapter.name_fr}</span>
       </nav>
@@ -53,7 +53,7 @@ export default async function ChapterPage({ params }: { params: { chapterId: str
       </div>
 
       {(!rubrics || rubrics.length === 0) && (
-        <p className="text-muted-foreground text-center py-8">Aucune rubrique trouvee dans ce chapitre.</p>
+        <p className="text-muted-foreground text-center py-8">Aucune rubrique trouvée dans ce chapitre.</p>
       )}
     </div>
   )

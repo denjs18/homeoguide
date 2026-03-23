@@ -11,9 +11,9 @@ export function Header() {
 
   const navLinks = [
     { href: "/", label: "Accueil" },
-    { href: "/trouver-remede", label: "Trouver un remede", highlight: true },
-    { href: "/repertoire", label: "Repertoire" },
-    { href: "/remedes", label: "Remedes" },
+    { href: "/trouver-remede", label: "Trouver un remède", highlight: true },
+    { href: "/repertoire", label: "Répertoire" },
+    { href: "/remedes", label: "Remèdes" },
     { href: "/recherche", label: "Recherche" },
   ]
 
