@@ -26,18 +26,52 @@ export default function RecherchePage() {
     setLoading(true)
     setSearched(true)
     const supabase = createClient()
+    const searchTerm = query.trim()
 
-    const { data, error } = await supabase.rpc("search_kent", {
-      search_query: query,
-      max_results: 50,
-    })
+    // Search rubrics (ILIKE)
+    const { data: rubrics } = await supabase
+      .from("kent_rubrics")
+      .select("id, full_path, chapter_id")
+      .ilike("full_path", `%${searchTerm}%`)
+      .limit(30)
 
-    if (error) {
-      console.error("Search error:", error)
-      setResults([])
-    } else {
-      setResults(data || [])
+    // Get chapter names for rubric results
+    const chapterIds = Array.from(new Set((rubrics || []).map(r => r.chapter_id)))
+    let chapterMap: Record<number, string> = {}
+    if (chapterIds.length > 0) {
+      const { data: chapters } = await supabase
+        .from("kent_chapters")
+        .select("id, name_fr")
+        .in("id", chapterIds)
+      for (const ch of chapters || []) {
+        chapterMap[ch.id] = ch.name_fr
+      }
     }
+
+    const rubricResults: SearchResult[] = (rubrics || []).map(r => ({
+      result_type: "rubric",
+      result_id: r.id,
+      name_display: r.full_path,
+      chapter_name: chapterMap[r.chapter_id] || null,
+      rank: 0,
+    }))
+
+    // Search remedies (ILIKE on abbrev and name_full)
+    const { data: remedies } = await supabase
+      .from("kent_remedies")
+      .select("id, abbrev, name_full")
+      .or(`abbrev.ilike.%${searchTerm}%,name_full.ilike.%${searchTerm}%`)
+      .limit(20)
+
+    const remedyResults: SearchResult[] = (remedies || []).map(r => ({
+      result_type: "remedy",
+      result_id: r.id,
+      name_display: `${r.abbrev} - ${r.name_full}`,
+      chapter_name: null,
+      rank: 0,
+    }))
+
+    setResults([...rubricResults, ...remedyResults])
     setLoading(false)
   }
 

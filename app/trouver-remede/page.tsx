@@ -85,13 +85,71 @@ export default function TrouverRemedePage() {
     setLoading(true)
     setStep("results")
 
-    const { data, error } = await supabase.rpc("repertorize", {
-      rubric_ids: selectedRubrics.map(r => r.id),
-      max_results: 30,
-    })
+    const rubricIds = selectedRubrics.map(r => r.id)
 
-    if (error) console.error("Repertorization error:", error)
-    setResults(data || [])
+    // Fetch all associations for selected rubrics
+    const { data: associations, error } = await supabase
+      .from("kent_rubric_remedies")
+      .select("rubric_id, remedy_id, grade")
+      .in("rubric_id", rubricIds)
+
+    if (error) {
+      console.error("Repertorization error:", error)
+      setResults([])
+      setLoading(false)
+      return
+    }
+
+    // Group by remedy_id and compute scores
+    const remedyMap = new Map<number, { total_score: number; rubric_count: number; max_grade: number; grade_details: { rubric_id: number; grade: number }[] }>()
+    for (const a of associations || []) {
+      const existing = remedyMap.get(a.remedy_id)
+      if (existing) {
+        existing.total_score += a.grade
+        existing.rubric_count += 1
+        if (a.grade > existing.max_grade) existing.max_grade = a.grade
+        existing.grade_details.push({ rubric_id: a.rubric_id, grade: a.grade })
+      } else {
+        remedyMap.set(a.remedy_id, {
+          total_score: a.grade,
+          rubric_count: 1,
+          max_grade: a.grade,
+          grade_details: [{ rubric_id: a.rubric_id, grade: a.grade }],
+        })
+      }
+    }
+
+    // Fetch remedy details for matched remedies
+    const remedyIds = Array.from(remedyMap.keys())
+    if (remedyIds.length === 0) {
+      setResults([])
+      setLoading(false)
+      return
+    }
+
+    const { data: remedies } = await supabase
+      .from("kent_remedies")
+      .select("id, abbrev, name_full")
+      .in("id", remedyIds)
+
+    // Build results sorted by rubric_count DESC, total_score DESC
+    const resultList: RepertorizationResult[] = (remedies || [])
+      .map(rem => {
+        const stats = remedyMap.get(rem.id)!
+        return {
+          remedy_id: rem.id,
+          abbrev: rem.abbrev,
+          name_full: rem.name_full,
+          total_score: stats.total_score,
+          rubric_count: stats.rubric_count,
+          max_grade: stats.max_grade,
+          grade_details: stats.grade_details,
+        }
+      })
+      .sort((a, b) => b.rubric_count - a.rubric_count || b.total_score - a.total_score || b.max_grade - a.max_grade)
+      .slice(0, 30)
+
+    setResults(resultList)
     setLoading(false)
   }
 
