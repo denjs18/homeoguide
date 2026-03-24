@@ -14,6 +14,8 @@ export interface KentRubric {
   chapter_id: number
   symptom: string
   full_path: string
+  symptom_fr: string | null
+  full_path_fr: string | null
   depth: number
 }
 
@@ -34,6 +36,8 @@ export interface RubricWithCounts {
   id: number
   symptom: string
   full_path: string
+  symptom_fr: string | null
+  full_path_fr: string | null
   depth: number
   child_count: number
   remedy_count: number

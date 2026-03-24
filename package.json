@@ -9,7 +9,13 @@
     "lint": "next lint",
     "seed": "npx tsx scripts/seed-database.ts",
     "parse-kent": "npx tsx scripts/parse-openhomeopath.ts",
-    "import-kent": "npx tsx scripts/import-kent.ts"
+    "import-kent": "npx tsx scripts/import-kent.ts",
+    "extract-terms": "npx tsx scripts/extract-terms.ts",
+    "build-french": "npx tsx scripts/build-french-paths.ts",
+    "import-french": "npx tsx scripts/import-french.ts",
+    "split-dict": "npx tsx scripts/split-dictionary.ts",
+    "merge-dict": "npx tsx scripts/merge-dictionary.ts",
+    "validate-dict": "npx tsx scripts/validate-translations.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.1.0",

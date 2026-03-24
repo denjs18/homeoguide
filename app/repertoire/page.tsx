@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import type { KentChapter } from "@/lib/supabase/types"
+import { LangText, LangChapter } from "@/components/LangText"
 
 export const metadata = {
   title: "Répertoire Kent - HomeoGuide",
@@ -17,9 +18,14 @@ export default async function RepertoirePage() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-2">Répertoire de Kent</h1>
+      <h1 className="text-3xl font-bold mb-2">
+        <LangText fr="Répertoire de Kent" en="Kent Repertory" />
+      </h1>
       <p className="text-muted-foreground mb-8">
-        68 000+ rubriques du répertoire homéopathique de Kent. Sélectionnez un chapitre pour naviguer.
+        <LangText
+          fr="68 000+ rubriques du répertoire homéopathique de Kent. Sélectionnez un chapitre pour naviguer."
+          en="68,000+ rubrics from Kent's homeopathic repertory. Select a chapter to browse."
+        />
       </p>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -31,10 +37,10 @@ export default async function RepertoirePage() {
           >
             <span className="text-3xl mb-2">{chapter.icon}</span>
             <span className="font-medium text-center group-hover:text-primary transition-colors">
-              {chapter.name_fr}
+              <LangChapter nameFr={chapter.name_fr} nameEn={chapter.name_en} />
             </span>
             <span className="text-xs text-muted-foreground mt-1">
-              {chapter.name_en}
+              <LangText fr={chapter.name_en} en={chapter.name_fr} />
             </span>
           </Link>
         ))}

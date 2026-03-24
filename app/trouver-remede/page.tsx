@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
 import { GradeBadge } from "@/components/GradeBadge"
+import { useLanguage } from "@/lib/language-context"
 import type { KentChapter, RepertorizationResult } from "@/lib/supabase/types"
 
 type Step = "chapter" | "browse" | "results"
@@ -14,9 +15,10 @@ export default function TrouverRemedePage() {
   const [selectedChapter, setSelectedChapter] = useState<KentChapter | null>(null)
   const [rubrics, setRubrics] = useState<any[]>([])
   const [breadcrumb, setBreadcrumb] = useState<{ id: number; label: string }[]>([])
-  const [selectedRubrics, setSelectedRubrics] = useState<{ id: number; path: string }[]>([])
+  const [selectedRubrics, setSelectedRubrics] = useState<{ id: number; path: string; pathFr: string }[]>([])
   const [results, setResults] = useState<RepertorizationResult[]>([])
   const [loading, setLoading] = useState(false)
+  const { lang, t } = useLanguage()
 
   const supabase = createClient()
 
@@ -32,7 +34,7 @@ export default function TrouverRemedePage() {
     setLoading(true)
     let query = supabase
       .from("kent_rubrics")
-      .select("id, symptom, full_path, depth")
+      .select("id, symptom, symptom_fr, full_path, full_path_fr, depth")
       .eq("chapter_id", chapterId)
       .order("symptom")
       .limit(500)
@@ -56,7 +58,7 @@ export default function TrouverRemedePage() {
   }
 
   function navigateToRubric(rubric: any) {
-    setBreadcrumb([...breadcrumb, { id: rubric.id, label: rubric.symptom }])
+    setBreadcrumb([...breadcrumb, { id: rubric.id, label: t(rubric.symptom_fr, rubric.symptom) }])
     loadRubrics(rubric.id, selectedChapter!.id)
   }
 
@@ -76,7 +78,11 @@ export default function TrouverRemedePage() {
     if (exists) {
       setSelectedRubrics(selectedRubrics.filter(r => r.id !== rubric.id))
     } else {
-      setSelectedRubrics([...selectedRubrics, { id: rubric.id, path: rubric.full_path }])
+      setSelectedRubrics([...selectedRubrics, {
+        id: rubric.id,
+        path: rubric.full_path,
+        pathFr: rubric.full_path_fr || rubric.full_path,
+      }])
     }
   }
 
@@ -164,25 +170,28 @@ export default function TrouverRemedePage() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold mb-2">Trouver un remède</h1>
+      <h1 className="text-3xl font-bold mb-2">{t("Trouver un remède", "Find a Remedy")}</h1>
       <p className="text-muted-foreground mb-6">
-        Sélectionnez des rubriques du répertoire Kent, puis lancez la répertorisation.
+        {t(
+          "Sélectionnez des rubriques du répertoire Kent, puis lancez la répertorisation.",
+          "Select rubrics from the Kent repertory, then run the repertorization."
+        )}
       </p>
 
       {/* Selected rubrics panel */}
       {selectedRubrics.length > 0 && (
         <div className="mb-6 p-4 border rounded-lg bg-primary/5 sticky top-20 z-10">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="font-semibold">Rubriques sélectionnées ({selectedRubrics.length})</h3>
+            <h3 className="font-semibold">{t("Rubriques sélectionnées", "Selected Rubrics")} ({selectedRubrics.length})</h3>
             <div className="flex gap-2">
               <button onClick={() => setSelectedRubrics([])} className="text-xs text-muted-foreground hover:text-destructive">
-                Tout effacer
+                {t("Tout effacer", "Clear all")}
               </button>
               <button
                 onClick={runRepertorization}
                 className="px-4 py-1.5 bg-primary text-primary-foreground rounded-md text-sm hover:bg-primary/90 font-medium"
               >
-                Répertoriser
+                {t("Répertoriser", "Repertorize")}
               </button>
             </div>
           </div>
@@ -192,9 +201,9 @@ export default function TrouverRemedePage() {
                 key={r.id}
                 className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10 text-sm cursor-pointer hover:bg-destructive/10"
                 onClick={() => toggleRubric(r)}
-                title="Cliquer pour retirer"
+                title={t("Cliquer pour retirer", "Click to remove")}
               >
-                {r.path}
+                {lang === "fr" ? r.pathFr : r.path}
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -214,7 +223,7 @@ export default function TrouverRemedePage() {
               className="flex flex-col items-center p-4 rounded-lg border hover:border-primary hover:shadow-md transition-all"
             >
               <span className="text-2xl mb-1">{ch.icon}</span>
-              <span className="font-medium text-sm text-center">{ch.name_fr}</span>
+              <span className="font-medium text-sm text-center">{lang === "fr" ? ch.name_fr : ch.name_en}</span>
             </button>
           ))}
         </div>
@@ -225,11 +234,11 @@ export default function TrouverRemedePage() {
         <div>
           <nav className="flex items-center gap-1 text-sm mb-4 flex-wrap">
             <button onClick={() => { setStep("chapter") }} className="text-muted-foreground hover:text-primary">
-              Chapitres
+              {t("Chapitres", "Chapters")}
             </button>
             <span className="mx-1 text-muted-foreground">/</span>
             <button onClick={() => navigateBreadcrumb(-1)} className="text-muted-foreground hover:text-primary">
-              {selectedChapter.icon} {selectedChapter.name_fr}
+              {selectedChapter.icon} {lang === "fr" ? selectedChapter.name_fr : selectedChapter.name_en}
             </button>
             {breadcrumb.map((item, i) => (
               <span key={item.id} className="flex items-center">
@@ -246,12 +255,15 @@ export default function TrouverRemedePage() {
           </nav>
 
           {loading ? (
-            <p className="text-center py-8 text-muted-foreground">Chargement...</p>
+            <p className="text-center py-8 text-muted-foreground">{t("Chargement...", "Loading...")}</p>
           ) : (
             <div className="space-y-1 border rounded-lg divide-y">
               {rubrics.map((rubric) => {
                 const isSelected = selectedRubrics.some(r => r.id === rubric.id)
-                const lastPart = rubric.full_path.split(" > ").pop()
+                const displayPath = lang === "fr"
+                  ? (rubric.full_path_fr || rubric.full_path)
+                  : rubric.full_path
+                const lastPart = displayPath.split(" > ").pop()
                 return (
                   <div key={rubric.id} className="flex items-center gap-2 p-3 hover:bg-accent transition-colors">
                     <button
@@ -282,7 +294,9 @@ export default function TrouverRemedePage() {
           )}
 
           {!loading && rubrics.length === 0 && (
-            <p className="text-muted-foreground text-center py-8">Aucune sous-rubrique. Sélectionnez la rubrique parente.</p>
+            <p className="text-muted-foreground text-center py-8">
+              {t("Aucune sous-rubrique. Sélectionnez la rubrique parente.", "No sub-rubrics. Select the parent rubric.")}
+            </p>
           )}
         </div>
       )}
@@ -291,16 +305,16 @@ export default function TrouverRemedePage() {
       {step === "results" && (
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold">Resultats</h2>
+            <h2 className="text-xl font-semibold">{t("Résultats", "Results")}</h2>
             <button onClick={() => setStep("browse")} className="text-sm text-primary hover:underline">
-              Modifier la selection
+              {t("Modifier la sélection", "Edit selection")}
             </button>
           </div>
 
           {loading ? (
-            <p className="text-center py-8 text-muted-foreground">Répertorisation en cours...</p>
+            <p className="text-center py-8 text-muted-foreground">{t("Répertorisation en cours...", "Repertorization in progress...")}</p>
           ) : results.length === 0 ? (
-            <p className="text-center py-8 text-muted-foreground">Aucun remède trouvé.</p>
+            <p className="text-center py-8 text-muted-foreground">{t("Aucun remède trouvé.", "No remedy found.")}</p>
           ) : (
             <div className="space-y-2">
               {results.map((r, i) => (
@@ -318,7 +332,7 @@ export default function TrouverRemedePage() {
                   </div>
                   <div className="flex items-center gap-3 text-sm">
                     <span className="text-muted-foreground">
-                      {r.rubric_count}/{selectedRubrics.length} rubriques
+                      {r.rubric_count}/{selectedRubrics.length} {t("rubriques", "rubrics")}
                     </span>
                     <span className="font-semibold">Score: {r.total_score}</span>
                     <GradeBadge grade={r.max_grade} />
@@ -330,7 +344,7 @@ export default function TrouverRemedePage() {
 
           <div className="mt-6 text-center">
             <button onClick={reset} className="px-4 py-2 border rounded-md hover:bg-accent">
-              Nouvelle recherche
+              {t("Nouvelle recherche", "New search")}
             </button>
           </div>
         </div>

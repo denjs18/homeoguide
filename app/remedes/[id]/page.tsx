@@ -2,6 +2,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { GradeBadge } from "@/components/GradeBadge"
+import { LangText, LangChapter } from "@/components/LangText"
 
 export default async function RemedePage({ params }: { params: { id: string } }) {
   const supabase = await createClient()
@@ -18,12 +19,12 @@ export default async function RemedePage({ params }: { params: { id: string } })
   // Get associated rubrics grouped by chapter
   const { data: associations } = await supabase
     .from("kent_rubric_remedies")
-    .select("grade, kent_rubrics(id, full_path, chapter_id, kent_chapters(id, name_fr, icon))")
+    .select("grade, kent_rubrics(id, full_path, full_path_fr, chapter_id, kent_chapters(id, name_en, name_fr, icon))")
     .eq("remedy_id", remedyId)
     .order("grade", { ascending: false })
 
   // Group by chapter
-  const byChapter: Record<string, { chapter: any; rubrics: { id: number; full_path: string; grade: number }[] }> = {}
+  const byChapter: Record<string, { chapter: any; rubrics: { id: number; full_path: string; full_path_fr: string | null; grade: number }[] }> = {}
   associations?.forEach((a: any) => {
     const rubric = a.kent_rubrics
     if (!rubric) return
@@ -32,7 +33,7 @@ export default async function RemedePage({ params }: { params: { id: string } })
     if (!byChapter[key]) {
       byChapter[key] = { chapter: ch, rubrics: [] }
     }
-    byChapter[key].rubrics.push({ id: rubric.id, full_path: rubric.full_path, grade: a.grade })
+    byChapter[key].rubrics.push({ id: rubric.id, full_path: rubric.full_path, full_path_fr: rubric.full_path_fr, grade: a.grade })
   })
 
   const chapterKeys = Object.keys(byChapter).sort((a, b) => {
@@ -42,7 +43,7 @@ export default async function RemedePage({ params }: { params: { id: string } })
   return (
     <div className="max-w-4xl mx-auto">
       <nav className="mb-6 text-sm text-muted-foreground">
-        <Link href="/remedes" className="hover:text-primary">Remèdes</Link>
+        <Link href="/remedes" className="hover:text-primary"><LangText fr="Remèdes" en="Remedies" /></Link>
         <span className="mx-2">/</span>
         <span className="text-foreground">{remedy.abbrev}</span>
       </nav>
@@ -51,7 +52,7 @@ export default async function RemedePage({ params }: { params: { id: string } })
       <p className="text-lg text-muted-foreground italic mb-8">{remedy.name_full}</p>
 
       <h2 className="text-xl font-semibold mb-4">
-        Rubriques associées ({associations?.length || 0})
+        <LangText fr="Rubriques associées" en="Associated Rubrics" /> ({associations?.length || 0})
       </h2>
 
       <div className="space-y-6">
@@ -61,9 +62,9 @@ export default async function RemedePage({ params }: { params: { id: string } })
             <details key={key} className="border rounded-lg">
               <summary className="flex items-center justify-between p-4 cursor-pointer hover:bg-accent rounded-lg">
                 <span className="font-medium">
-                  {chapter.icon} {chapter.name_fr}
+                  <LangChapter nameFr={chapter.name_fr} nameEn={chapter.name_en} icon={chapter.icon} />
                 </span>
-                <span className="text-sm text-muted-foreground">{rubrics.length} rubriques</span>
+                <span className="text-sm text-muted-foreground">{rubrics.length} <LangText fr="rubriques" en="rubrics" /></span>
               </summary>
               <div className="p-4 pt-0 space-y-1">
                 {rubrics.map((r) => (
@@ -72,7 +73,7 @@ export default async function RemedePage({ params }: { params: { id: string } })
                     href={`/repertoire/rubrique/${r.id}`}
                     className="flex items-center justify-between py-1.5 px-2 rounded hover:bg-accent text-sm"
                   >
-                    <span className="truncate mr-2">{r.full_path}</span>
+                    <span className="truncate mr-2"><LangText fr={r.full_path_fr} en={r.full_path} /></span>
                     <GradeBadge grade={r.grade} />
                   </Link>
                 ))}
@@ -83,7 +84,9 @@ export default async function RemedePage({ params }: { params: { id: string } })
       </div>
 
       {(!associations || associations.length === 0) && (
-        <p className="text-muted-foreground text-center py-8">Aucune rubrique associée.</p>
+        <p className="text-muted-foreground text-center py-8">
+          <LangText fr="Aucune rubrique associée." en="No associated rubrics." />
+        </p>
       )}
     </div>
   )

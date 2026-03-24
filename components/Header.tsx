@@ -4,17 +4,19 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
+import { useLanguage } from "@/lib/language-context"
 
 export function Header() {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const { lang, toggleLang, t } = useLanguage()
 
   const navLinks = [
-    { href: "/", label: "Accueil" },
-    { href: "/trouver-remede", label: "Trouver un remède", highlight: true },
-    { href: "/repertoire", label: "Répertoire" },
-    { href: "/remedes", label: "Remèdes" },
-    { href: "/recherche", label: "Recherche" },
+    { href: "/", label: t("Accueil", "Home") },
+    { href: "/trouver-remede", label: t("Trouver un remède", "Find a Remedy"), highlight: true },
+    { href: "/repertoire", label: t("Répertoire", "Repertory") },
+    { href: "/remedes", label: t("Remèdes", "Remedies") },
+    { href: "/recherche", label: t("Recherche", "Search") },
   ]
 
   return (
@@ -45,6 +47,13 @@ export function Header() {
               {link.label}
             </Link>
           ))}
+          <button
+            onClick={toggleLang}
+            className="text-xs font-medium px-2 py-1 rounded border hover:bg-accent transition-colors"
+            title={lang === "fr" ? "Switch to English" : "Passer en français"}
+          >
+            {lang === "fr" ? "EN" : "FR"}
+          </button>
         </nav>
 
         <button
@@ -74,6 +83,12 @@ export function Header() {
               {link.label}
             </Link>
           ))}
+          <button
+            onClick={toggleLang}
+            className="block w-full text-left px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-accent"
+          >
+            {lang === "fr" ? "Switch to English (EN)" : "Passer en français (FR)"}
+          </button>
         </nav>
       )}
     </header>

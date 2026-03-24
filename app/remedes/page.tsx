@@ -5,6 +5,7 @@ import Link from "next/link"
 import { AlphabetNav } from "@/components/AlphabetNav"
 import { Input } from "@/components/ui/input"
 import { createClient } from "@/lib/supabase/client"
+import { useLanguage } from "@/lib/language-context"
 import type { KentRemedy } from "@/lib/supabase/types"
 
 function groupByFirstLetter(items: KentRemedy[]): Record<string, KentRemedy[]> {
@@ -22,6 +23,7 @@ export default function RemediesPage() {
   const [filter, setFilter] = useState("")
   const [activeLetter, setActiveLetter] = useState<string | undefined>()
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({})
+  const { t } = useLanguage()
 
   useEffect(() => {
     async function fetchRemedes() {
@@ -50,7 +52,7 @@ export default function RemediesPage() {
   }
 
   if (loading) {
-    return <div className="flex justify-center py-12 text-muted-foreground">Chargement des remèdes...</div>
+    return <div className="flex justify-center py-12 text-muted-foreground">{t("Chargement des remèdes...", "Loading remedies...")}</div>
   }
 
   return (
@@ -60,12 +62,12 @@ export default function RemediesPage() {
       </aside>
 
       <div className="flex-1 min-w-0">
-        <h1 className="text-3xl font-bold mb-2">Remèdes homéopathiques</h1>
-        <p className="text-muted-foreground mb-6">{remedes.length} remèdes du répertoire de Kent</p>
+        <h1 className="text-3xl font-bold mb-2">{t("Remèdes homéopathiques", "Homeopathic Remedies")}</h1>
+        <p className="text-muted-foreground mb-6">{remedes.length} {t("remèdes du répertoire de Kent", "remedies from Kent's repertory")}</p>
 
         <Input
           type="text"
-          placeholder="Filtrer les remèdes..."
+          placeholder={t("Filtrer les remèdes...", "Filter remedies...")}
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
           className="max-w-md mb-6"
